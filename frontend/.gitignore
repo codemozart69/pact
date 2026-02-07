@@ -45,3 +45,6 @@ next-env.d.ts
 
 # scripts
 /scripts
+
+# Local private notes
+docs/.notes/
