@@ -30,7 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatAddress, formatEtherToMnt } from "@/lib/format-utils";
+import { formatAddress, formatEtherToHbar } from "@/lib/format-utils";
 import { formatFullDate } from "@/lib/date-utils";
 import { ACTION_COLORS, getActionGradient, getActionLightGradient } from "@/lib/action-colors";
 import {
@@ -431,7 +431,7 @@ export default function SendPaymentSheet({
 
                 {/* Amount Field */}
                 <div className="space-y-2">
-                  <Label>Amount (MNT)</Label>
+                  <Label>Amount (HBAR)</Label>
                   <Input
                     type="number"
                     step="0.000001"
@@ -532,7 +532,7 @@ export default function SendPaymentSheet({
                             </div>
                             <div className="text-right">
                               <div className="font-semibold text-zinc-900">
-                                {formatEtherToMnt(payment.amount)}
+                                {formatEtherToHbar(payment.amount)}
                               </div>
                               <Badge
                                 variant="outline"
@@ -619,7 +619,7 @@ export default function SendPaymentSheet({
                   Amount Sent
                 </div>
                 <div className={`text-4xl font-bold ${ACTION_COLORS.send.text.primary}`}>
-                  {formatEtherToMnt(selectedPayment.amount)}
+                  {formatEtherToHbar(selectedPayment.amount)}
                 </div>
               </div>
 
@@ -644,7 +644,7 @@ export default function SendPaymentSheet({
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-500">Transaction</span>
                   <a
-                    href={`https://explorer.testnet.mantle.xyz/tx/${selectedPayment.transactionHash}`}
+                    href={`https://hashscan.io/testnet/transaction/${selectedPayment.transactionHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`flex items-center gap-1 font-medium ${ACTION_COLORS.send.text.primary} hover:${ACTION_COLORS.send.text.secondary}`}

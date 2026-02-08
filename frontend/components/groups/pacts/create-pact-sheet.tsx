@@ -132,7 +132,7 @@ export function CreatePactSheet({ groupId }: CreatePactSheetProps) {
                 contractAddress: deployedAddress,
                 name: values.name,
                 description: values.description,
-                chainId: 5003, // Mantle Sepolia
+                chainId: 296, // Hedera Testnet
             });
 
             toast.success("Group Fund created successfully!", { id: "create-fund" });

@@ -63,7 +63,7 @@ export function DepositModal({ contractAddress, pactName, trigger }: DepositModa
                 <DialogHeader>
                     <DialogTitle>Deposit into {pactName}</DialogTitle>
                     <DialogDescription>
-                        Contribute MNT to this group fund.
+                        Contribute HBAR to this group fund.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -81,7 +81,7 @@ export function DepositModal({ contractAddress, pactName, trigger }: DepositModa
                                     className="pr-12"
                                 />
                                 <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">
-                                    MNT
+                                    HBAR
                                 </span>
                             </div>
                         </div>

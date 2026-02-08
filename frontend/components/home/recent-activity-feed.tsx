@@ -32,7 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { User, ExternalLink } from "lucide-react";
 import { formatFullDate } from "@/lib/date-utils";
-import { formatAddress, formatSmartMnt } from "@/lib/format-utils";
+import { formatAddress, formatSmartHbar } from "@/lib/format-utils";
 import { ACTION_COLORS } from "@/lib/action-colors";
 
 interface RecentActivityFeedProps {
@@ -266,7 +266,7 @@ export default function RecentActivityFeed({
               title={`${config.titlePrefix}${userName ? ` ${userName}` : ""}`}
               description={description}
               amount={
-                activity.amount ? formatSmartMnt(activity.amount) : undefined
+                activity.amount ? formatSmartHbar(activity.amount) : undefined
               }
               amountPrefix={config.amountPrefix}
               amountClass={config.amountClass}
@@ -406,7 +406,7 @@ function ActivityDetailModal({
               className={`text-4xl font-bold ${isReceived ? "text-green-600" : "text-blue-600"
                 }`}
             >
-              {formatSmartMnt(payment.amount)}
+              {formatSmartHbar(payment.amount)}
             </div>
           </div>
 
@@ -448,7 +448,7 @@ function ActivityDetailModal({
               <div className="flex items-center justify-between">
                 <span className="text-zinc-500">Transaction</span>
                 <a
-                  href={`https://explorer.testnet.mantle.xyz/tx/${payment.transactionHash}`}
+                  href={`https://hashscan.io/testnet/transaction/${payment.transactionHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700"
@@ -554,7 +554,7 @@ function ActivityDetailModal({
               Requested Amount
             </div>
             <div className="text-4xl font-bold text-amber-600">
-              {formatSmartMnt(paymentRequest.amount)}
+              {formatSmartHbar(paymentRequest.amount)}
             </div>
           </div>
 
@@ -671,7 +671,7 @@ function ActivityDetailModal({
                 Amount Claimed
               </div>
               <div className="text-4xl font-bold text-pink-600">
-                {formatSmartMnt(recentClaim.amount)}
+                {formatSmartHbar(recentClaim.amount)}
               </div>
             </div>
           )}
@@ -690,7 +690,7 @@ function ActivityDetailModal({
                   <div className="flex items-center justify-between">
                     <span className="text-zinc-500">Transaction</span>
                     <a
-                      href={`https://explorer.testnet.mantle.xyz/tx/${recentClaim.transactionHash}`}
+                      href={`https://hashscan.io/testnet/transaction/${recentClaim.transactionHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700"

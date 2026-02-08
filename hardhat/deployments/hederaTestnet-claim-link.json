@@ -1,0 +1,9 @@
+{
+  "network": "hederaTestnet",
+  "timestamp": "2026-02-07T21:41:27.223Z",
+  "deployer": "0xab045170c1490ab3150343de134b80724f5934c9",
+  "contracts": {
+    "ClaimLinkFactory": "0x2578a37386405e3ee35070b3d040363a90db1f96",
+    "ClaimLinkImplementation": "0x1B32eb442efc4751B3FD9f4EaFA1ef5B9d1b0302"
+  }
+}

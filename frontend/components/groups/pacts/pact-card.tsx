@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, ChevronRight } from "lucide-react";
-import { formatAddress, formatEtherToMnt } from "@/lib/format-utils";
+import { formatAddress, formatEtherToHbar } from "@/lib/format-utils";
 import { useGroupFund } from "@/hooks/useGroupFund";
 import { Id } from "@/convex/_generated/dataModel";
 
@@ -42,9 +42,9 @@ export function PactCard({ pact, onClick }: PactCardProps) {
                         <p className="text-sm font-medium text-muted-foreground">Balance</p>
                         <p className="text-2xl font-bold">
                             {Number(balance) > 0 ? (
-                                <span className="text-foreground">{formatEtherToMnt(balance)}</span>
+                                <span className="text-foreground">{formatEtherToHbar(balance)}</span>
                             ) : (
-                                <span className="text-foreground/50">0.00 MNT</span>
+                                <span className="text-foreground/50">0.00 HBAR</span>
                             )}
                         </p>
                     </div>

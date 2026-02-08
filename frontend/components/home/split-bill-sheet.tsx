@@ -69,7 +69,7 @@ import UserRecipientInput, {
   RecipientUser,
 } from "@/components/home/user-recipient-input";
 import { formatFullDate, formatExpiry } from "@/lib/date-utils";
-import { formatEtherToMnt, formatMntValue, formatWeiToMnt } from "@/lib/format-utils";
+import { formatEtherToHbar, formatHbarValue, formatWeiToHbar } from "@/lib/format-utils";
 import { getActionGradient } from "@/lib/action-colors";
 
 type ViewMode = "create" | "list" | "details";
@@ -285,7 +285,7 @@ export default function SplitBillSheet({
   const calculateEqualAmount = () => {
     if (!amount || participants.length === 0) return "0";
     const amountNum = parseFloat(amount);
-    return formatMntValue((amountNum / participants.length).toString());
+    return formatHbarValue((amountNum / participants.length).toString());
   };
 
   const calculateCustomSum = () => {
@@ -321,7 +321,7 @@ export default function SplitBillSheet({
       const totalAmt = parseFloat(amount);
       if (Math.abs(sum - totalAmt) > 0.000001) {
         toast.error(
-          `Custom amounts (${formatEtherToMnt(sum.toString())}) must equal total amount (${formatEtherToMnt(totalAmt.toString())})`,
+          `Custom amounts (${formatEtherToHbar(sum.toString())}) must equal total amount (${formatEtherToHbar(totalAmt.toString())})`,
         );
         return false;
       }
@@ -839,7 +839,7 @@ export default function SplitBillSheet({
 
                   {/* Total Amount */}
                   <div className="space-y-2">
-                    <Label>Total Amount (MNT) *</Label>
+                    <Label>Total Amount (HBAR) *</Label>
                     <Input
                       type="number"
                       step="0.000001"
@@ -929,7 +929,7 @@ export default function SplitBillSheet({
                             Equal splits
                           </Label>
                           <p className="text-sm text-zinc-500">
-                            Each person pays {calculateEqualAmount()} MNT
+                            Each person pays {calculateEqualAmount()} HBAR
                           </p>
                           {participants.length > 0 && amount && (
                             <div className="mt-2 flex items-start gap-2 text-xs text-zinc-500">
@@ -954,8 +954,8 @@ export default function SplitBillSheet({
                           </p>
                           {splitMode === "custom" && (
                             <div className="mt-2 text-sm text-zinc-600">
-                              Total: {formatMntValue(calculateCustomSum().toString())} /{" "}
-                              {amount || "0"} MNT
+                              Total: {formatHbarValue(calculateCustomSum().toString())} /{" "}
+                              {amount || "0"} HBAR
                             </div>
                           )}
                         </div>
@@ -1162,7 +1162,7 @@ export default function SplitBillSheet({
                                       {getStatusBadge(split.status)}
                                     </div>
                                     <div className="mb-2 text-sm text-zinc-600">
-                                      {formatWeiToMnt(split.totalAmount)} total
+                                      {formatWeiToHbar(split.totalAmount)} total
                                     </div>
                                     <div className="mb-3 text-sm text-zinc-500">
                                       {split.paidCount}/
@@ -1243,7 +1243,7 @@ export default function SplitBillSheet({
                                         From {split.creator?.name || "Unknown"}
                                       </div>
                                       <div className="mb-3 text-sm text-zinc-500">
-                                        Your share: {formatWeiToMnt(participation.amount)}
+                                        Your share: {formatWeiToHbar(participation.amount)}
                                       </div>
                                       <div className="text-xs text-zinc-400">
                                         Created{" "}
@@ -1299,8 +1299,8 @@ export default function SplitBillSheet({
                       Collected
                     </div>
                     <div className="text-4xl font-bold text-teal-600">
-                      {formatWeiToMnt(selectedSplit.totalCollected)} /{" "}
-                      {formatWeiToMnt(selectedSplit.totalAmount)}
+                      {formatWeiToHbar(selectedSplit.totalCollected)} /{" "}
+                      {formatWeiToHbar(selectedSplit.totalAmount)}
                     </div>
                     <div className="mt-2 text-sm text-teal-600">
                       {selectedSplit.paidCount}/
@@ -1325,7 +1325,7 @@ export default function SplitBillSheet({
                         Your Share
                       </h3>
                       <div className="text-2xl font-bold text-zinc-900">
-                        {formatWeiToMnt(myParticipation.amount)}
+                        {formatWeiToHbar(myParticipation.amount)}
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-zinc-600">Status:</span>
@@ -1395,7 +1395,7 @@ export default function SplitBillSheet({
                         </div>
                         <div className="text-right">
                           <div className="text-sm font-semibold text-zinc-900">
-                            {formatWeiToMnt(p.amount)}
+                            {formatWeiToHbar(p.amount)}
                           </div>
                           {getParticipantStatusBadge(p.status)}
                           {isCreator &&
@@ -1492,7 +1492,7 @@ export default function SplitBillSheet({
                   {selectedParticipantForMark.user?.name}
                 </div>
                 <div className="text-sm text-zinc-600">
-                  Amount: {formatWeiToMnt(selectedParticipantForMark.amount)}
+                  Amount: {formatWeiToHbar(selectedParticipantForMark.amount)}
                 </div>
               </div>
             )}

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { formatMntValue } from "@/lib/format-utils";
+import { formatHbarValue } from "@/lib/format-utils";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { useBalance } from "wagmi";
 import { Spinner } from "@/components/ui/spinner";
@@ -82,7 +82,7 @@ export default function HomePage() {
     address: address as `0x${string}`,
   });
   const formattedBalance = balanceData
-    ? formatMntValue(balanceData.formatted)
+    ? formatHbarValue(balanceData.formatted)
     : "0.00";
 
   if (status === "connecting" || user === undefined) {
@@ -125,7 +125,7 @@ export default function HomePage() {
                     .{formattedBalance.split(".")[1]?.slice(0, 5) || "00"}
                   </span>
                 </span>
-                <span className="text-3xl font-bold text-zinc-900">MNT</span>
+                <span className="text-3xl font-bold text-zinc-900">HBAR</span>
               </div>
             </div>
           </div>

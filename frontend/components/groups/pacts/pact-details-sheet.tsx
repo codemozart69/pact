@@ -1,7 +1,7 @@
 "use client";
 
 import { useGroupFund } from "@/hooks/useGroupFund";
-import { formatEtherToMnt, formatAddress } from "@/lib/format-utils";
+import { formatEtherToHbar, formatAddress } from "@/lib/format-utils";
 import { Copy, Wallet, ArrowDownCircle, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -85,9 +85,9 @@ export function PactDetailsSheet({ pactId, open, onOpenChange }: PactDetailsShee
                                 </div>
                                 <div className="mt-2 text-3xl font-bold">
                                     {Number(balance ?? 0) > 0 ? (
-                                        <span className="text-primary">{formatEtherToMnt(balance)}</span>
+                                        <span className="text-primary">{formatEtherToHbar(balance)}</span>
                                     ) : (
-                                        "0.00 MNT"
+                                        "0.00 HBAR"
                                     )}
                                 </div>
 
@@ -118,13 +118,13 @@ export function PactDetailsSheet({ pactId, open, onOpenChange }: PactDetailsShee
                                 <div className="rounded-lg border p-4">
                                     <div className="text-sm text-muted-foreground">Total In</div>
                                     <div className="mt-1 text-lg font-semibold text-green-600">
-                                        +{formatEtherToMnt(stats?.totalDeposited || "0")}
+                                        +{formatEtherToHbar(stats?.totalDeposited || "0")}
                                     </div>
                                 </div>
                                 <div className="rounded-lg border p-4">
                                     <div className="text-sm text-muted-foreground">Total Out</div>
                                     <div className="mt-1 text-lg font-semibold text-red-600">
-                                        -{formatEtherToMnt(stats?.totalWithdrawn || "0")}
+                                        -{formatEtherToHbar(stats?.totalWithdrawn || "0")}
                                     </div>
                                 </div>
                             </div>

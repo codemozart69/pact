@@ -117,7 +117,7 @@ export function XmtpProvider({ children }: { children: React.ReactNode }) {
             let errorMessage = err.message || "Failed to initialize messaging";
 
             if (errorMessage.includes("NoVerifier") || errorMessage.includes("UNSUPPORTED_SIGNER") || errorMessage.includes("Unknown signer")) {
-                errorMessage = "Messaging is currently only supported for standard wallets (MetaMask, Rabby, etc.) on Mantle. Social Login wallets are not yet supported for XMTP on this chain.";
+                errorMessage = "Messaging is currently only supported for standard wallets (MetaMask, Rabby, etc.). Social Login wallets are not yet supported for XMTP on Hedera.";
             } else if (errorMessage.includes("NoModificationAllowedError") ||
                 errorMessage.includes("Access Handles cannot be created") ||
                 errorMessage.includes("Database is locked")) {

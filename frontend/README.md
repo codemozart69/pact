@@ -38,7 +38,7 @@ This project integrates **XMTP (v5)** for secure, end-to-end encrypted messaging
 ### ❌ Unsupported Users (SCW / Social Login)
 - **AppKit Social Login**: Email, Google, X, etc.
 - **Smart Contract Wallets (SCW)**: Safe, Coinbase Smart Wallet, etc.
-- **Why?** XMTP v5 requires an on-chain verifier for SCW (ERC-1271) signatures. Currently, **Mantle Sepolia (Chain ID 5003)** is not on the list of supported networks for SCW verification in the XMTP WASM core. 
+- **Why?** XMTP v5 requires an on-chain verifier for SCW (ERC-1271) signatures. Currently, **Hedera Testnet (Chain ID 296)** is not on the list of supported networks for SCW verification in the XMTP WASM core. 
 - *Note: Using these wallets will result in a "Signature validation failed (NoVerifier)" error.*
 
 ### ⛓️ SCW Network Support Matrix
@@ -46,7 +46,7 @@ This project integrates **XMTP (v5)** for secure, end-to-end encrypted messaging
 | :--- | :--- |
 | **Fully Supported** | Ethereum Mainnet, Base, Optimism, Arbitrum, Polygon, Avalanche |
 | **Testnets** | Sepolia (ETH), Base Sepolia, Optimism Sepolia |
-| **Currently Unsupported** | **Mantle**, Mantle Sepolia, Linea, Scroll |
+| **Currently Unsupported** | **Hedera**, Linea, Scroll |
 
 > [!NOTE]
 > This list reflects the current known networks supported by XMTP v5’s SCW (ERC-1271) verifier based on SDK behavior and libxmtp source, and may change as XMTP adds new verifiers.

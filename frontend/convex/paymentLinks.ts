@@ -92,7 +92,7 @@ export const createPaymentLink = mutation({
             imageOrEmoji: args.imageOrEmoji,
             imageType: args.imageType,
             amount: args.amount,
-            currency: "MNT",
+            currency: "HBAR",
             linkType: args.linkType,
             status: "active",
             shortId,

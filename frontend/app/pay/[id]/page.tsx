@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
@@ -67,36 +68,38 @@ export default function PaymentLinkPage() {
 
     // Handle transaction confirmation
     useEffect(() => {
-        // Prevent duplicate recordings
-        if (
-            isConfirmed &&
-            txHash &&
-            address &&
-            paymentLink &&
-            !isRecording &&
-            recordedTxHash !== txHash
-        ) {
-            setIsRecording(true);
-            setRecordedTxHash(txHash);
+        const handleConfirmation = async () => {
+            // Prevent duplicate recordings
+            if (
+                isConfirmed &&
+                txHash &&
+                address &&
+                paymentLink &&
+                !isRecording &&
+                recordedTxHash !== txHash
+            ) {
+                setIsRecording(true);
+                setRecordedTxHash(txHash);
 
-            recordPayment({
-                payerAddress: address,
-                paymentLinkId: paymentLink._id,
-                transactionHash: txHash,
-                amount: paymentLink.amount,
-            })
-                .then(() => {
+                try {
+                    await recordPayment({
+                        payerAddress: address,
+                        paymentLinkId: paymentLink._id,
+                        transactionHash: txHash,
+                        amount: paymentLink.amount,
+                    });
                     setShowSuccessModal(true);
                     toast.success("Payment recorded successfully!");
-                })
-                .catch((error) => {
+                } catch (error) {
                     console.error("Failed to record payment:", error);
                     toast.error("Payment sent but failed to record. Please contact support with your transaction hash.");
-                })
-                .finally(() => {
+                } finally {
                     setIsRecording(false);
-                });
-        }
+                }
+            }
+        };
+
+        handleConfirmation();
     }, [isConfirmed, txHash, address, paymentLink, recordPayment, isRecording, recordedTxHash]);
 
     const handlePayClick = async () => {
@@ -190,7 +193,7 @@ export default function PaymentLinkPage() {
                         Payment Link Not Found
                     </h1>
                     <p className="mb-6 text-zinc-600">
-                        This payment link doesn't exist or has been removed.
+                        This payment link doesn&apos;t exist or has been removed.
                     </p>
                     <Button
                         onClick={() => router.push("/")}
@@ -241,11 +244,14 @@ export default function PaymentLinkPage() {
                             {paymentLink.imageType === "emoji" ? (
                                 <div className="text-8xl">{paymentLink.imageUrl}</div>
                             ) : (
-                                <img
-                                    src={paymentLink.imageUrl}
-                                    alt={paymentLink.title}
-                                    className="h-32 w-32 rounded-lg object-cover"
-                                />
+                                <div className="relative h-32 w-32 mx-auto">
+                                    <Image
+                                        src={paymentLink.imageUrl}
+                                        alt={paymentLink.title}
+                                        fill
+                                        className="rounded-lg object-cover"
+                                    />
+                                </div>
                             )}
                         </div>
 
@@ -287,7 +293,7 @@ export default function PaymentLinkPage() {
                                 Amount
                             </div>
                             <div className="text-4xl font-bold text-purple-600">
-                                {paymentLink.amount} MNT
+                                {paymentLink.amount} HBAR
                             </div>
                         </div>
 
@@ -327,9 +333,9 @@ export default function PaymentLinkPage() {
                                         {isRecording ? "Recording..." : "Confirming..."}
                                     </>
                                 ) : isConnected ? (
-                                    `Pay ${paymentLink.amount} MNT`
+                                    `Pay ${paymentLink.amount} HBAR`
                                 ) : (
-                                    `Connect Wallet & Pay ${paymentLink.amount} MNT`
+                                    `Connect Wallet & Pay ${paymentLink.amount} HBAR`
                                 )}
                             </Button>
                         )}
@@ -368,9 +374,9 @@ export default function PaymentLinkPage() {
 
                     <div className="space-y-4">
                         <div className="rounded-lg bg-zinc-50 p-4">
-                            <div className="mb-2 text-sm text-zinc-600">You're paying</div>
+                            <div className="mb-2 text-sm text-zinc-600">You&apos;re paying</div>
                             <div className="text-2xl font-bold text-zinc-900">
-                                {paymentLink.amount} MNT
+                                {paymentLink.amount} HBAR
                             </div>
                         </div>
 
@@ -430,7 +436,7 @@ export default function PaymentLinkPage() {
                         <div className="text-center">
                             <div className="mb-1 text-sm text-zinc-600">You paid</div>
                             <div className="text-3xl font-bold text-zinc-900">
-                                {paymentLink.amount} MNT
+                                {paymentLink.amount} HBAR
                             </div>
                             <div className="mt-1 text-sm text-zinc-600">
                                 to {paymentLink.creator?.name}
@@ -442,7 +448,7 @@ export default function PaymentLinkPage() {
                                 <span className="text-zinc-600">Transaction</span>
                                 {txHash && (
                                     <a
-                                        href={`https://explorer.testnet.mantle.xyz/tx/${txHash}`}
+                                        href={`https://hashscan.io/testnet/transaction/${txHash}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700"
@@ -455,7 +461,7 @@ export default function PaymentLinkPage() {
                             <div className="flex justify-between">
                                 <span className="text-zinc-600">Time</span>
                                 <span className="font-medium text-zinc-900">
-                                    {formatFullDate(Date.now())}
+                                    {formatFullDate(paymentLink._creationTime)}
                                 </span>
                             </div>
                         </div>

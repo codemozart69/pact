@@ -76,58 +76,55 @@ export default function ConversationView({
                 ) : (
                     <ScrollArea className="h-full">
                         <div className="p-4">
-                            ) : (
-                            <ScrollArea className="h-full">
-                                <div className="p-4">
-                                    {messages.map((message, index) => {
-                                        // Group messages by sender and time gaps
-                                        const prevMessage = messages[index - 1];
-                                        const isSequence = prevMessage &&
-                                            areAddressesEqual(prevMessage.senderInboxId, message.senderInboxId) &&
-                                            (message.sentAt - prevMessage.sentAt < 5 * 60 * 1000); // 5 min gap
+                            {messages.map((message, index) => {
+                                // Group messages by sender and time gaps
+                                const prevMessage = messages[index - 1];
+                                const isSequence = prevMessage &&
+                                    areAddressesEqual(prevMessage.senderInboxId, message.senderInboxId) &&
+                                    (message.sentAt - prevMessage.sentAt < 5 * 60 * 1000); // 5 min gap
 
-                                        const showTimestamp = !isSequence && (
-                                            index === 0 ||
-                                            (message.sentAt - (prevMessage?.sentAt || 0) > 5 * 60 * 1000)
-                                        );
+                                const showTimestamp = !isSequence && (
+                                    index === 0 ||
+                                    (message.sentAt - (prevMessage?.sentAt || 0) > 5 * 60 * 1000)
+                                );
 
-                                        const showSenderName = isGroup && !message.isFromSelf && !isSequence;
+                                const showSenderName = isGroup && !message.isFromSelf && !isSequence;
 
-                                        return (
-                                            <MessageBubble
-                                                key={message.id}
-                                                message={message}
-                                                reactions={
-                                                    message.reactions && typeof message.reactions === 'object' && !('mine' in message.reactions)
-                                                        ? message.reactions as unknown as Record<string, number>
-                                                        : message.reactions
-                                                            ? Object.entries(message.reactions as Record<string, { count: number }>).reduce((acc, [emoji, data]) => ({ ...acc, [emoji]: data.count }), {} as Record<string, number>)
-                                                            : undefined
-                                                }
-                                                showTimestamp={showTimestamp}
-                                                senderName={
-                                                    showSenderName
-                                                        ? members.find(m =>
-                                                            areAddressesEqual(m.userAddress, message.senderInboxId)
-                                                        )?.name || formatAddress(message.senderInboxId)
-                                                        : undefined
-                                                }
-                                                onReact={sendReaction}
-                                                peerUser={peerUser}
-                                            />
+                                return (
+                                    <MessageBubble
+                                        key={message.id}
+                                        message={message}
+                                        reactions={
+                                            message.reactions && typeof message.reactions === 'object' && !('mine' in message.reactions)
+                                                ? message.reactions as unknown as Record<string, number>
+                                                : message.reactions
+                                                    ? Object.entries(message.reactions as Record<string, { count: number }>).reduce((acc, [emoji, data]) => ({ ...acc, [emoji]: data.count }), {} as Record<string, number>)
+                                                    : undefined
+                                        }
+                                        showTimestamp={showTimestamp}
+                                        senderName={
+                                            showSenderName
+                                                ? members.find(m =>
+                                                    areAddressesEqual(m.userAddress, message.senderInboxId)
+                                                )?.name || formatAddress(message.senderInboxId)
+                                                : undefined
+                                        }
+                                        onReact={sendReaction}
+                                        peerUser={peerUser}
+                                    />
 
 
 
-                                        );
-                                    })}
-                                    <div ref={messagesEndRef} />
-                                </div>
-                            </ScrollArea>
-                )}
+                                );
+                            })}
+                            <div ref={messagesEndRef} />
                         </div>
+                    </ScrollArea>
+                )}
+            </div>
 
-                        {/* Input */}
-                        <MessageInput onSend={sendMessage} isSending={isSending} />
-                    </div>
-                );
+            {/* Input */}
+            <MessageInput onSend={sendMessage} isSending={isSending} />
+        </div>
+    );
 }

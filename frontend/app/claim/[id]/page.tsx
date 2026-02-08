@@ -35,7 +35,7 @@ import {
   generateClaimProof,
 } from "@/lib/crypto/proof-utils";
 import { formatExpiry } from "@/lib/date-utils";
-import { formatAddress, formatEtherToMnt } from "@/lib/format-utils";
+import { formatAddress, formatEtherToHbar } from "@/lib/format-utils";
 import { ClaimLinkImplementationABI } from "@/lib/contracts/claim-link-abis";
 
 // Type for claim link data
@@ -52,12 +52,12 @@ function getClaimableAmount(claimLink: ClaimLinkData): string {
     0,
     parseFloat(claimLink.totalAmount) - parseFloat(claimLink.totalClaimed),
   );
-  return formatEtherToMnt(remaining.toString());
+  return formatEtherToHbar(remaining.toString());
 }
 
 // Helper function to get block explorer URL
 function getExplorerUrl(txHash: string): string {
-  return `https://sepolia.mantlescan.xyz/tx/${txHash}`;
+  return `https://hashscan.io/testnet/transaction/${txHash}`;
 }
 
 export default function ClaimPage() {
@@ -176,7 +176,6 @@ export default function ClaimPage() {
       await publicClient.waitForTransactionReceipt({ hash });
 
       // Calculate claimed amount from contract read
-      const amountWei = claimableAmountWei.toString();
       const amountClaimed = formatEther(claimableAmountWei);
 
       toast.loading("Recording claim...", { id: "claim" });
@@ -355,7 +354,7 @@ export default function ClaimPage() {
                 Available to Claim
               </div>
               <div className="text-4xl font-bold text-pink-600">
-                {getClaimableAmount(claimLink)} MNT
+                {getClaimableAmount(claimLink)} HBAR
               </div>
               {claimLink.splitMode === "equal" && (
                 <div className="mt-2 text-sm text-pink-600">
@@ -473,12 +472,12 @@ export default function ClaimPage() {
               </div>
               <div className="text-2xl font-bold text-zinc-900">
                 {claimLink.splitMode === "equal"
-                  ? formatEtherToMnt((
+                  ? formatEtherToHbar((
                     parseFloat(claimLink.totalAmount) /
                     (claimLink.maxClaimers || 1)
                   ).toString())
-                  : formatEtherToMnt(claimLink.totalAmount)}
-                MNT
+                  : formatEtherToHbar(claimLink.totalAmount)}
+                HBAR
               </div>
             </div>
 
@@ -537,14 +536,14 @@ export default function ClaimPage() {
               <div className="mb-1 text-sm text-zinc-600">You claimed</div>
               <div className="text-3xl font-bold text-zinc-900">
                 {claimedAmount
-                  ? formatEtherToMnt(claimedAmount)
+                  ? formatEtherToHbar(claimedAmount)
                   : (claimLink?.splitMode === "equal"
-                    ? formatEtherToMnt((
+                    ? formatEtherToHbar((
                       parseFloat(claimLink?.totalAmount || "0") /
                       (claimLink?.maxClaimers || 1)
                     ).toString())
-                    : formatEtherToMnt(claimLink?.totalAmount || "0"))}
-                MNT
+                    : formatEtherToHbar(claimLink?.totalAmount || "0"))}
+                HBAR
               </div>
               <div className="mt-1 text-sm text-zinc-600">
                 from {claimLink?.creator?.name}
@@ -562,7 +561,7 @@ export default function ClaimPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 font-mono text-sm text-pink-600 transition-colors hover:text-pink-700"
-                  aria-label="View transaction on Mantle Sepolia explorer"
+                  aria-label="View transaction on Hedera Testnet explorer"
                 >
                   <span className="truncate">{formatAddress(txHash)}</span>
                   <ExternalLink className="h-4 w-4 shrink-0" />

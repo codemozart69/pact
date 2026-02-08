@@ -61,7 +61,7 @@ export function WithdrawModal({ contractAddress, pactName = "Group Fund", classN
                 <DialogHeader>
                     <DialogTitle>Withdraw from {pactName}</DialogTitle>
                     <DialogDescription>
-                        Withdraw MNT from this group fund to your wallet. only admins can do this.
+                        Withdraw HBAR from this group fund to your wallet. only admins can do this.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -79,7 +79,7 @@ export function WithdrawModal({ contractAddress, pactName = "Group Fund", classN
                                     className="pr-12"
                                 />
                                 <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">
-                                    MNT
+                                    HBAR
                                 </span>
                             </div>
                         </div>

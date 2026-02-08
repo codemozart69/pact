@@ -22,7 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { formatFullDate, formatExpiry } from "@/lib/date-utils";
 import { formatAddress } from "@/lib/format-utils";
-import { User, X, Clock, ExternalLink } from "lucide-react";
+import { User, X, ExternalLink } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ACTION_COLORS, getActionLightGradient, getActionBadge } from "@/lib/action-colors";
 
@@ -43,14 +43,13 @@ interface PaymentRequestNotificationProps {
 }
 
 export function PaymentRequestNotification({
-    notificationId,
     fromUser,
     paymentRequestId,
     amount,
     message,
     timestamp,
     isRead,
-}: PaymentRequestNotificationProps) {
+}: Omit<PaymentRequestNotificationProps, "notificationId">) {
     const { address } = useAppKitAccount();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -152,7 +151,7 @@ export function PaymentRequestNotification({
                 avatar={fromUser.profileImageUrl}
                 fallbackIcon={<HandCoins className="h-5 w-5" />}
                 title="Payment request"
-                description={`${fromUser.name} is requesting ${amount} MNT${message ? ` • ${message.substring(0, 30)}${message.length > 30 ? "..." : ""}` : ""}`}
+                description={`${fromUser.name} is requesting ${amount} HBAR${message ? ` • ${message.substring(0, 30)}${message.length > 30 ? "..." : ""}` : ""}`}
                 timestamp={timestamp}
                 isRead={isRead}
                 onClick={handleClick}
@@ -214,13 +213,12 @@ interface PaymentRequestDeclinedNotificationProps {
 }
 
 export function PaymentRequestDeclinedNotification({
-    notificationId,
     fromUser,
     paymentRequestId,
     amount,
     timestamp,
     isRead,
-}: PaymentRequestDeclinedNotificationProps) {
+}: Omit<PaymentRequestDeclinedNotificationProps, "notificationId">) {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleClick = () => {
@@ -233,7 +231,7 @@ export function PaymentRequestDeclinedNotification({
                 avatar={fromUser.profileImageUrl}
                 fallbackIcon={<XCircle className="h-5 w-5" />}
                 title="Request declined"
-                description={`${fromUser.name} declined your request for ${amount} MNT`}
+                description={`${fromUser.name} declined your request for ${amount} HBAR`}
                 timestamp={timestamp}
                 isRead={isRead}
                 onClick={handleClick}
@@ -264,13 +262,12 @@ interface PaymentRequestCompletedNotificationProps {
 }
 
 export function PaymentRequestCompletedNotification({
-    notificationId,
     fromUser,
     paymentRequestId,
     amount,
     timestamp,
     isRead,
-}: PaymentRequestCompletedNotificationProps) {
+}: Omit<PaymentRequestCompletedNotificationProps, "notificationId">) {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleClick = () => {
@@ -283,7 +280,7 @@ export function PaymentRequestCompletedNotification({
                 avatar={fromUser.profileImageUrl}
                 fallbackIcon={<CheckCircle className="h-5 w-5" />}
                 title="Request completed"
-                description={`${fromUser.name} sent you ${amount} MNT for your request`}
+                description={`${fromUser.name} sent you ${amount} HBAR for your request`}
                 timestamp={timestamp}
                 isRead={isRead}
                 onClick={handleClick}
@@ -433,7 +430,7 @@ function PaymentRequestDetailModal({
                             {isSender ? "Requested Amount" : "You Requested"}
                         </div>
                         <div className={`text-4xl font-bold ${ACTION_COLORS.request.text.primary}`}>
-                            {request.amount} MNT
+                            {request.amount} HBAR
                         </div>
                     </div>
 
@@ -468,7 +465,7 @@ function PaymentRequestDetailModal({
                             <div className="flex items-center justify-between">
                                 <span className="text-zinc-500">Transaction</span>
                                 <a
-                                    href={`https://explorer.testnet.mantle.xyz/tx/${payment.transactionHash}`}
+                                    href={`https://hashscan.io/testnet/transaction/${payment.transactionHash}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className={`flex items-center gap-1 font-medium ${ACTION_COLORS.send.text.primary} hover:${ACTION_COLORS.send.text.secondary}`}

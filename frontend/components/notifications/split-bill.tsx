@@ -28,7 +28,7 @@ import { User, X } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { formatFullDate } from "@/lib/date-utils";
-import { formatWeiToMnt } from "@/lib/format-utils";
+import { formatWeiToHbar } from "@/lib/format-utils";
 import { ACTION_COLORS, getActionLightGradient, getActionBadge } from "@/lib/action-colors";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { Send, ExternalLink } from "lucide-react";
@@ -90,7 +90,7 @@ export function SplitBillRequestNotification({
         avatar={fromUser.profileImageUrl}
         fallbackIcon={<Split className="h-5 w-5" />}
         title="Split Bill Request"
-        description={`${fromUser.name} added you to a split bill${amount ? ` • Your share: ${formatWeiToMnt(amount.toString())}` : ""}`}
+        description={`${fromUser.name} added you to a split bill${amount ? ` • Your share: ${formatWeiToHbar(amount.toString())}` : ""}`}
         timestamp={timestamp}
         isRead={isRead}
         onClick={handleClick}
@@ -161,7 +161,7 @@ export function SplitBillRequestNotification({
                   Your Share
                 </div>
                 <div className={`text-3xl font-bold ${ACTION_COLORS.splitBill.text.primary}`}>
-                  {formatWeiToMnt(myPart?.amount || "0")} MNT
+                  {formatWeiToHbar(myPart?.amount || "0")} HBAR
                 </div>
               </div>
 
@@ -261,7 +261,7 @@ export function SplitBillPaidNotification({
         avatar={fromUser.profileImageUrl}
         fallbackIcon={<Check className="h-5 w-5" />}
         title="Payment Received"
-        description={`${fromUser.name} paid their share${amount ? ` • ${formatWeiToMnt(amount.toString())}` : ""}`}
+        description={`${fromUser.name} paid their share${amount ? ` • ${formatWeiToHbar(amount.toString())}` : ""}`}
         timestamp={timestamp}
         isRead={isRead}
         onClick={() => setIsModalOpen(true)}
@@ -308,7 +308,7 @@ export function SplitBillPaidNotification({
                   Amount Received
                 </div>
                 <div className={`text-3xl font-bold ${ACTION_COLORS.receive.text.primary}`}>
-                  {formatWeiToMnt((amount || 0).toString())}
+                  {formatWeiToHbar((amount || 0).toString())}
                 </div>
               </div>
             </div>
@@ -406,7 +406,7 @@ export function SplitBillReminderNotification({
 
   let description = `${fromUser.name} sent a reminder`;
   if (amount) {
-    description += ` • Your share: ${formatWeiToMnt(amount.toString())}`;
+    description += ` • Your share: ${formatWeiToHbar(amount.toString())}`;
   }
 
   return (
@@ -470,7 +470,7 @@ export function SplitBillReminderNotification({
                   "text-3xl font-bold",
                   isPaid ? "text-green-600" : "text-amber-600"
                 )}>
-                  {formatWeiToMnt((amount || 0).toString())}
+                  {formatWeiToHbar((amount || 0).toString())}
                 </div>
                 {isPaid && (
                   <Badge className="mt-2 bg-green-100 text-green-700 border-green-200">

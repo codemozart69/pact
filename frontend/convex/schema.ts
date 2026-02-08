@@ -149,7 +149,7 @@ export default defineSchema({
     imageOrEmoji: v.string(),
     imageType: v.union(v.literal("emoji"), v.literal("image")),
     amount: v.string(),
-    currency: v.literal("MNT"),
+    currency: v.literal("HBAR"),
     linkType: v.union(v.literal("single-use"), v.literal("reusable")),
     status: v.union(
       v.literal("active"),

@@ -3,7 +3,7 @@
 import { wagmiAdapter, projectId } from "@/config";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createAppKit } from "@reown/appkit/react";
-import { mantleSepoliaTestnet } from "@reown/appkit/networks";
+import { hederaTestnet } from "@reown/appkit/networks";
 import React, { type ReactNode } from "react";
 import { cookieToInitialState, WagmiProvider, type Config } from "wagmi";
 import { ReownAuthentication } from "@reown/appkit-siwx";
@@ -19,7 +19,7 @@ if (!projectId) {
 const metadata = {
   name: "Pact",
   description:
-    "An all-in-one finance app for personal, group, and merchant transactions on Mantle, with programmable features like bill splitting, group-based P2P lending, borrowing, betting, and more.",
+    "An all-in-one finance app for personal, group, and merchant transactions on Hedera, with programmable features like bill splitting, group-based P2P lending, borrowing, betting, and more.",
   url: "https://appkitexampleapp.com", // origin must match your domain & subdomain
   icons: ["https://avatars.githubusercontent.com/u/179229932"],
 };
@@ -28,8 +28,8 @@ const metadata = {
 const modal = createAppKit({
   adapters: [wagmiAdapter],
   projectId,
-  networks: [mantleSepoliaTestnet],
-  defaultNetwork: mantleSepoliaTestnet,
+  networks: [hederaTestnet],
+  defaultNetwork: hederaTestnet,
   metadata: metadata,
   // siwx: new ReownAuthentication({
   //   required: false,

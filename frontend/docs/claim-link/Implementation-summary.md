@@ -15,7 +15,7 @@
 - ✅ **ClaimLinkFactory.sol** - Factory with:
   - ERC-1167 Minimal Proxy pattern
   - User claim link tracking
-  - Native MNT funding on deployment
+  - Native HBAR funding on deployment
 
 ### 2. Backend (Convex Schema)
 - ✅ **claimLinks** table with all necessary fields
@@ -66,9 +66,9 @@
 cd hardhat
 npm install @openzeppelin/contracts-upgradeable @openzeppelin/contracts
 
-# Update hardhat.config.ts with Mantle Sepolia
+# Update hardhat.config.ts with Hedera Testnet
 # Add deployment script
-npx hardhat run scripts/deploy-claim-link.ts --network mantleSepolia
+npx hardhat run scripts/deploy-claim-link.ts --network hederaTestnet
 ```
 
 **Deployment Script Needed:**
@@ -127,7 +127,7 @@ const { address: contractAddress } = await writeContract({
     customAmounts.map(a => parseEther(a)),
     keypair?.address || "0x0000000000000000000000000000000000000000"
   ],
-  value: parseEther(amount) // For native MNT
+  value: parseEther(amount) // For native HBAR
 });
 
 // 3. Wait for deployment event
@@ -192,12 +192,12 @@ await recordClaim({
 ### 6. Contract Verification
 After deployment:
 ```bash
-npx hardhat verify --network mantleSepolia FACTORY_ADDRESS
-npx hardhat verify --network mantleSepolia IMPLEMENTATION_ADDRESS
+npx hardhat verify --network hederaTestnet FACTORY_ADDRESS
+npx hardhat verify --network hederaTestnet IMPLEMENTATION_ADDRESS
 ```
 
 ### 7. Testing Checklist
-- [ ] Deploy to Mantle Sepolia testnet
+- [ ] Deploy to Hedera Sepolia testnet
 - [ ] Test "anyone" mode with equal splits
 - [ ] Test "anyone" mode with signature verification
 - [ ] Test allowlist mode with equal splits
@@ -266,7 +266,7 @@ Data Storage:
 
 ## 🎯 Next Immediate Steps
 
-1. Deploy ClaimLinkFactory to Mantle Sepolia
+1. Deploy ClaimLinkFactory to Hedera Testnet
 2. Copy contract addresses and ABIs to frontend
 3. Implement Convex mutations/queries
 4. Complete wagmi integration in UI components

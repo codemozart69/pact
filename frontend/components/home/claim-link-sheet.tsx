@@ -74,7 +74,7 @@ import {
   SplitMode as ContractSplitMode,
 } from "@/lib/contracts/claim-link-abis";
 import { formatFullDate } from "@/lib/date-utils";
-import { formatAddress, formatEtherToMnt, formatMntValue } from "@/lib/format-utils";
+import { formatAddress, formatEtherToHbar, formatHbarValue } from "@/lib/format-utils";
 import { getActionGradient } from "@/lib/action-colors";
 
 type ViewMode = "create" | "list" | "details" | "success";
@@ -744,7 +744,7 @@ export default function ClaimLinkSheet() {
 
                 {/* Total Amount */}
                 <div className="space-y-2">
-                  <Label>Total Amount (MNT) *</Label>
+                  <Label>Total Amount (HBAR) *</Label>
                   <Input
                     type="number"
                     step="0.000001"
@@ -839,9 +839,9 @@ export default function ClaimLinkSheet() {
                       <span>
                         First {maxClaimers} people to claim will each get{" "}
                         {amount && maxClaimers
-                          ? formatMntValue((parseFloat(amount) / parseInt(maxClaimers)).toString())
+                          ? formatHbarValue((parseFloat(amount) / parseInt(maxClaimers)).toString())
                           : "0"}{" "}
-                        MNT
+                        HBAR
                       </span>
                     </div>
                   </div>
@@ -907,8 +907,8 @@ export default function ClaimLinkSheet() {
                         <span>
                           Each address will receive{" "}
                           {amount && allowlist.length
-                            ? formatEtherToMnt((parseFloat(amount) / allowlist.length).toString())
-                            : "0.00 MNT"}
+                            ? formatEtherToHbar((parseFloat(amount) / allowlist.length).toString())
+                            : "0.00 HBAR"}
                         </span>
                       </div>
                     )}
@@ -1126,7 +1126,7 @@ export default function ClaimLinkSheet() {
                         : `No ${statusFilter} claim links`}
                     </h3>
                     <p className="mb-4 text-sm text-zinc-500">
-                      Create shareable links to distribute MNT to others
+                      Create shareable links to distribute HBAR to others
                     </p>
                     <Button
                       onClick={() => setViewMode("create")}
@@ -1204,8 +1204,8 @@ export default function ClaimLinkSheet() {
                     Remaining
                   </div>
                   <div className="text-4xl font-bold text-pink-600">
-                    {formatMntValue(selectedLink.maxClaimers ? (parseFloat(selectedLink.totalAmount) / selectedLink.maxClaimers).toString() : selectedLink.totalAmount)}
-                    <span className="text-2xl font-medium text-pink-400"> MNT</span>
+                    {formatHbarValue(selectedLink.maxClaimers ? (parseFloat(selectedLink.totalAmount) / selectedLink.maxClaimers).toString() : selectedLink.totalAmount)}
+                    <span className="text-2xl font-medium text-pink-400"> HBAR</span>
                   </div>
                   <div className="mt-2 text-sm text-pink-600">
                     {selectedLink.claimCount}/{selectedLink.maxClaimers || "∞"}{" "}
@@ -1333,7 +1333,7 @@ export default function ClaimLinkSheet() {
                           </div>
                           <div className="text-right">
                             <div className="text-sm font-semibold text-zinc-900">
-                              {formatEther(BigInt(claim.amount))} MNT
+                              {formatEther(BigInt(claim.amount))} HBAR
                             </div>
                           </div>
                         </div>
@@ -1438,13 +1438,13 @@ function ClaimLinkCard({
           </div>
 
           <div className="mb-2 text-sm text-zinc-600">
-            {link.totalAmount} MNT •{" "}
+            {link.totalAmount} HBAR •{" "}
             {link.accessMode === "anyone" ? "Anyone" : "Allowlist"}
           </div>
 
           <div className="mb-3 text-sm text-zinc-500">
             {link.claimCount} claim{link.claimCount !== 1 ? "s" : ""} •{" "}
-            {formatEtherToMnt(Math.max(
+            {formatEtherToHbar(Math.max(
               0,
               parseFloat(link.totalAmount) - parseFloat(link.totalClaimed),
             ).toString())} remaining

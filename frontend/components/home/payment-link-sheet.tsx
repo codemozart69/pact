@@ -535,7 +535,7 @@ export default function PaymentLinkSheet() {
 
                                 {/* Amount */}
                                 <div className="space-y-2">
-                                    <Label>Amount (MNT) *</Label>
+                                    <Label>Amount (HBAR) *</Label>
                                     <Input
                                         type="number"
                                         step="0.000001"
@@ -782,7 +782,7 @@ export default function PaymentLinkSheet() {
                                         </h3>
                                         <p className="mb-4 text-sm text-zinc-500">
                                             {statusFilter === "all"
-                                                ? "Create shareable payment links to collect MNT from anyone"
+                                                ? "Create shareable payment links to collect HBAR from anyone"
                                                 : "Create a new payment link to get started"}
                                         </p>
                                         <Button
@@ -850,7 +850,7 @@ export default function PaymentLinkSheet() {
 
                                     <div className="mb-4 flex items-center justify-center gap-2">
                                         <Badge variant="outline" className="text-sm">
-                                            {selectedLink.amount} MNT
+                                            {selectedLink.amount} HBAR
                                         </Badge>
                                         <Badge variant="outline" className="text-sm">
                                             {selectedLink.linkType === "single-use" ? "One-time" : "Reusable"}
@@ -962,7 +962,7 @@ export default function PaymentLinkSheet() {
                                                     {selectedLink.totalCollected}
                                                 </div>
                                                 <div className="text-xs text-zinc-500">
-                                                    MNT Collected
+                                                    HBAR Collected
                                                 </div>
                                             </div>
                                             <div>
@@ -1073,7 +1073,7 @@ export default function PaymentLinkSheet() {
                                                     )}
                                                     <div className="text-right">
                                                         <div className="text-sm font-semibold text-zinc-900">
-                                                            {payment.amount} MNT
+                                                            {payment.amount} HBAR
                                                         </div>
                                                         <div className="text-xs text-zinc-500">
                                                             {formatFullDate(payment.timestamp)}
@@ -1084,7 +1084,7 @@ export default function PaymentLinkSheet() {
                                                         size="icon"
                                                         onClick={() =>
                                                             window.open(
-                                                                `https://explorer.testnet.mantle.xyz/tx/${payment.transactionHash}`,
+                                                                `https://hashscan.io/testnet/transaction/${payment.transactionHash}`,
                                                                 "_blank"
                                                             )
                                                         }
@@ -1156,10 +1156,10 @@ export default function PaymentLinkSheet() {
 
                                 {/* Amount (Read-only) */}
                                 <div className="space-y-2">
-                                    <Label>Amount (MNT)</Label>
+                                    <Label>Amount (HBAR)</Label>
                                     <div className="rounded-lg bg-zinc-100 p-3">
                                         <p className="text-sm font-medium text-zinc-900">
-                                            {selectedLink.amount} MNT
+                                            {selectedLink.amount} HBAR
                                         </p>
                                     </div>
                                     <p className="text-xs text-zinc-500">

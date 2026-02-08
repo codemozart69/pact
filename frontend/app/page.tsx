@@ -10,7 +10,7 @@ import { Spinner } from "@/components/ui/spinner";
 export default function RootPage() {
   const router = useRouter();
   const pathname = usePathname();
-  const { address, isConnected, status } = useAppKitAccount();
+  const { address, isConnected } = useAppKitAccount();
 
   // Conditionally query for the user only when we have a connected address
   // AND we're not on a payment link page
@@ -66,7 +66,7 @@ export default function RootPage() {
       <main className="row-start-2 flex flex-col items-center gap-8 text-center">
         <h1 className="text-4xl font-bold">Pact</h1>
         <p className="text-lg text-zinc-600 dark:text-gray-300">
-          Your all-in-one finance app on Mantle.
+          Your all-in-one finance app on Hedera.
         </p>
         <appkit-button />
       </main>

@@ -11,7 +11,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatFullDate } from "@/lib/date-utils";
-import { formatEtherToMnt } from "@/lib/format-utils";
+import { formatEtherToHbar } from "@/lib/format-utils";
 
 interface PaymentLinkCardProps {
     link: {
@@ -129,12 +129,12 @@ export function PaymentLinkCard({ link, onClick }: PaymentLinkCardProps) {
                     </div>
 
                     <div className="mb-2 text-sm text-zinc-600">
-                        {formatEtherToMnt(link.amount)} • {link.linkType === "single-use" ? "One-time" : "Reusable"}
+                        {formatEtherToHbar(link.amount)} • {link.linkType === "single-use" ? "One-time" : "Reusable"}
                     </div>
 
                     {link.linkType === "reusable" && (
                         <div className="mb-3 text-sm text-zinc-500">
-                            {link.paymentCount} payment{link.paymentCount !== 1 ? "s" : ""} • {formatEtherToMnt(link.totalCollected)} collected
+                            {link.paymentCount} payment{link.paymentCount !== 1 ? "s" : ""} • {formatEtherToHbar(link.totalCollected)} collected
                         </div>
                     )}
 

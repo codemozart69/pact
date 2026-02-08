@@ -35,7 +35,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { formatFullDate, formatExpiry } from "@/lib/date-utils";
-import { formatEtherToMnt } from "@/lib/format-utils";
+import { formatEtherToHbar } from "@/lib/format-utils";
 import { ACTION_COLORS, getActionGradient, getActionLightGradient } from "@/lib/action-colors";
 import { format } from "date-fns";
 import {
@@ -230,7 +230,7 @@ export default function RequestPaymentSheet() {
                         </div>
                         <div className="text-right">
                             <div className="font-semibold text-zinc-900">
-                                {formatEtherToMnt(request.amount)}
+                                {formatEtherToHbar(request.amount)}
                             </div>
                             {getStatusBadge(request.status)}
                         </div>
@@ -346,7 +346,7 @@ export default function RequestPaymentSheet() {
 
                                     {/* Amount Field */}
                                     <div className="space-y-2">
-                                        <Label>Amount (MNT)</Label>
+                                        <Label>Amount (HBAR)</Label>
                                         <Input
                                             type="number"
                                             step="0.000001"
@@ -629,7 +629,7 @@ function RequestDetailModal({
                             {isSender ? "Requested Amount" : "You Requested"}
                         </div>
                         <div className={`text-4xl font-bold ${ACTION_COLORS.request.text.primary}`}>
-                            {formatEtherToMnt(request.amount)}
+                            {formatEtherToHbar(request.amount)}
                         </div>
                     </div>
 

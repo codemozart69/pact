@@ -1,355 +1,858 @@
 // ClaimLink Contract Configuration
-// Deployed on Mantle Sepolia (ChainId: 5003)
-// Factory: 0x55a4174522d33f0a6358d9683c603b3f4519a3b2
-// Implementation: 0x5a7594965C786F03CBfEEbD3612779f1D7de54a1
+// Deployed on Hedera Testnet (ChainId: 296)
+// Factory: 0x2578a37386405e3ee35070b3d040363a90db1f96
+// Implementation: 0x1B32eb442efc4751B3FD9f4EaFA1ef5B9d1b0302
 
-export const CLAIM_LINK_FACTORY_ADDRESS = "0x55a4174522d33f0a6358d9683c603b3f4519a3b2" as const;
-export const CLAIM_LINK_IMPLEMENTATION_ADDRESS = "0x5a7594965C786F03CBfEEbD3612779f1D7de54a1" as const;
+export const CLAIM_LINK_FACTORY_ADDRESS = "0x2578a37386405e3ee35070b3d040363a90db1f96" as const;
+export const CLAIM_LINK_IMPLEMENTATION_ADDRESS = "0x1B32eb442efc4751B3FD9f4EaFA1ef5B9d1b0302" as const;
 
 // ClaimLinkFactory ABI
 export const ClaimLinkFactoryABI = [
-    {
-        type: "constructor",
-        inputs: [],
-        stateMutability: "nonpayable",
-    },
-    {
-        type: "function",
-        name: "createClaimLink",
-        inputs: [
-            { name: "_assetType", type: "uint8", internalType: "uint8" },
-            { name: "_assetAddress", type: "address", internalType: "address" },
-            { name: "_totalAmount", type: "uint256", internalType: "uint256" },
-            { name: "_accessMode", type: "uint8", internalType: "uint8" },
-            { name: "_splitMode", type: "uint8", internalType: "uint8" },
-            { name: "_expirationTime", type: "uint256", internalType: "uint256" },
-            { name: "_maxClaimers", type: "uint256", internalType: "uint256" },
-            { name: "_allowlist", type: "address[]", internalType: "address[]" },
-            { name: "_customAmounts", type: "uint256[]", internalType: "uint256[]" },
-            { name: "_proofAddress", type: "address", internalType: "address" },
-        ],
-        outputs: [{ name: "", type: "address", internalType: "address" }],
-        stateMutability: "payable",
-    },
-    {
-        type: "function",
-        name: "getUserClaimLinks",
-        inputs: [{ name: "user", type: "address", internalType: "address" }],
-        outputs: [{ name: "", type: "address[]", internalType: "address[]" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "implementation",
-        inputs: [],
-        outputs: [{ name: "", type: "address", internalType: "address" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "userClaimLinks",
-        inputs: [
-            { name: "", type: "address", internalType: "address" },
-            { name: "", type: "uint256", internalType: "uint256" },
-        ],
-        outputs: [{ name: "", type: "address", internalType: "address" }],
-        stateMutability: "view",
-    },
-    {
-        type: "event",
-        name: "ClaimLinkDeployed",
-        inputs: [
-            { name: "creator", type: "address", indexed: true, internalType: "address" },
-            { name: "claimLink", type: "address", indexed: true, internalType: "address" },
-            { name: "assetType", type: "uint8", indexed: false, internalType: "uint8" },
-        ],
-        anonymous: false,
-    },
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "FailedDeployment",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "balance",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "needed",
+        "type": "uint256"
+      }
+    ],
+    "name": "InsufficientBalance",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "claimLink",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "assetType",
+        "type": "uint8"
+      }
+    ],
+    "name": "ClaimLinkDeployed",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "_assetType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "address",
+        "name": "_assetAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_totalAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint8",
+        "name": "_accessMode",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint8",
+        "name": "_splitMode",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_expirationTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_maxClaimers",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address[]",
+        "name": "_allowlist",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_customAmounts",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "address",
+        "name": "_proofAddress",
+        "type": "address"
+      }
+    ],
+    "name": "createClaimLink",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "getUserClaimLinks",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "implementation",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "userClaimLinks",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
 ] as const;
 
 // ClaimLinkImplementation ABI
 export const ClaimLinkImplementationABI = [
-    // State-changing functions
-    {
-        type: "function",
-        name: "initialize",
-        inputs: [
-            { name: "_creator", type: "address", internalType: "address" },
-            { name: "_assetType", type: "uint8", internalType: "enum ClaimLinkImplementation.AssetType" },
-            { name: "_assetAddress", type: "address", internalType: "address" },
-            { name: "_totalAmount", type: "uint256", internalType: "uint256" },
-            { name: "_accessMode", type: "uint8", internalType: "enum ClaimLinkImplementation.AccessMode" },
-            { name: "_splitMode", type: "uint8", internalType: "enum ClaimLinkImplementation.SplitMode" },
-            { name: "_expirationTime", type: "uint256", internalType: "uint256" },
-            { name: "_maxClaimers", type: "uint256", internalType: "uint256" },
-            { name: "_allowlist", type: "address[]", internalType: "address[]" },
-            { name: "_customAmounts", type: "uint256[]", internalType: "uint256[]" },
-            { name: "_proofAddress", type: "address", internalType: "address" },
-        ],
-        outputs: [],
-        stateMutability: "nonpayable",
-    },
-    {
-        type: "function",
-        name: "claimWithProof",
-        inputs: [{ name: "signature", type: "bytes", internalType: "bytes" }],
-        outputs: [],
-        stateMutability: "nonpayable",
-    },
-    {
-        type: "function",
-        name: "claim",
-        inputs: [],
-        outputs: [],
-        stateMutability: "nonpayable",
-    },
-    {
-        type: "function",
-        name: "pause",
-        inputs: [],
-        outputs: [],
-        stateMutability: "nonpayable",
-    },
-    {
-        type: "function",
-        name: "unpause",
-        inputs: [],
-        outputs: [],
-        stateMutability: "nonpayable",
-    },
-    {
-        type: "function",
-        name: "cancel",
-        inputs: [],
-        outputs: [],
-        stateMutability: "nonpayable",
-    },
-    {
-        type: "function",
-        name: "reclaimAssets",
-        inputs: [],
-        outputs: [],
-        stateMutability: "nonpayable",
-    },
-    {
-        type: "function",
-        name: "extendExpiration",
-        inputs: [{ name: "newExpirationTime", type: "uint256", internalType: "uint256" }],
-        outputs: [],
-        stateMutability: "nonpayable",
-    },
-    // View functions
-    {
-        type: "function",
-        name: "creator",
-        inputs: [],
-        outputs: [{ name: "", type: "address", internalType: "address" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "assetType",
-        inputs: [],
-        outputs: [{ name: "", type: "uint8", internalType: "enum ClaimLinkImplementation.AssetType" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "assetAddress",
-        inputs: [],
-        outputs: [{ name: "", type: "address", internalType: "address" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "totalAmount",
-        inputs: [],
-        outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "accessMode",
-        inputs: [],
-        outputs: [{ name: "", type: "uint8", internalType: "enum ClaimLinkImplementation.AccessMode" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "splitMode",
-        inputs: [],
-        outputs: [{ name: "", type: "uint8", internalType: "enum ClaimLinkImplementation.SplitMode" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "expirationTime",
-        inputs: [],
-        outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "maxClaimers",
-        inputs: [],
-        outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "status",
-        inputs: [],
-        outputs: [{ name: "", type: "uint8", internalType: "enum ClaimLinkImplementation.LinkStatus" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "proofAddress",
-        inputs: [],
-        outputs: [{ name: "", type: "address", internalType: "address" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "totalClaimed",
-        inputs: [],
-        outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "hasClaimed",
-        inputs: [{ name: "", type: "address", internalType: "address" }],
-        outputs: [{ name: "", type: "bool", internalType: "bool" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "getClaimableAmount",
-        inputs: [{ name: "claimer", type: "address", internalType: "address" }],
-        outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "getClaimers",
-        inputs: [],
-        outputs: [{ name: "", type: "address[]", internalType: "address[]" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "getRemainingAmount",
-        inputs: [],
-        outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "isExpired",
-        inputs: [],
-        outputs: [{ name: "", type: "bool", internalType: "bool" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "canClaim",
-        inputs: [{ name: "claimer", type: "address", internalType: "address" }],
-        outputs: [
-            { name: "", type: "bool", internalType: "bool" },
-            { name: "", type: "string", internalType: "string" },
-        ],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "allowedAddresses",
-        inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-        outputs: [{ name: "", type: "address", internalType: "address" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "allowedAmounts",
-        inputs: [{ name: "", type: "address", internalType: "address" }],
-        outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "claimers",
-        inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-        outputs: [{ name: "", type: "address", internalType: "address" }],
-        stateMutability: "view",
-    },
-    {
-        type: "function",
-        name: "owner",
-        inputs: [],
-        outputs: [{ name: "", type: "address", internalType: "address" }],
-        stateMutability: "view",
-    },
-    // Events
-    {
-        type: "event",
-        name: "ClaimLinkCreated",
-        inputs: [
-            { name: "creator", type: "address", indexed: true, internalType: "address" },
-            { name: "assetType", type: "uint8", indexed: false, internalType: "enum ClaimLinkImplementation.AssetType" },
-            { name: "totalAmount", type: "uint256", indexed: false, internalType: "uint256" },
-        ],
-        anonymous: false,
-    },
-    {
-        type: "event",
-        name: "Claimed",
-        inputs: [
-            { name: "claimer", type: "address", indexed: true, internalType: "address" },
-            { name: "amount", type: "uint256", indexed: false, internalType: "uint256" },
-        ],
-        anonymous: false,
-    },
-    {
-        type: "event",
-        name: "AssetsReclaimed",
-        inputs: [
-            { name: "creator", type: "address", indexed: true, internalType: "address" },
-            { name: "amount", type: "uint256", indexed: false, internalType: "uint256" },
-        ],
-        anonymous: false,
-    },
-    {
-        type: "event",
-        name: "ExpirationExtended",
-        inputs: [{ name: "newExpirationTime", type: "uint256", indexed: false, internalType: "uint256" }],
-        anonymous: false,
-    },
-    {
-        type: "event",
-        name: "LinkPaused",
-        inputs: [],
-        anonymous: false,
-    },
-    {
-        type: "event",
-        name: "LinkUnpaused",
-        inputs: [],
-        anonymous: false,
-    },
-    {
-        type: "event",
-        name: "LinkCancelled",
-        inputs: [
-            { name: "creator", type: "address", indexed: true, internalType: "address" },
-            { name: "remainingAmount", type: "uint256", indexed: false, internalType: "uint256" },
-        ],
-        anonymous: false,
-    },
-    // Receive function
-    {
-        type: "receive",
-        stateMutability: "payable",
-    },
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "ECDSAInvalidSignature",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "length",
+        "type": "uint256"
+      }
+    ],
+    "name": "ECDSAInvalidSignatureLength",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "s",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ECDSAInvalidSignatureS",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidInitialization",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotInitializing",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableInvalidOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableUnauthorizedAccount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ReentrancyGuardReentrantCall",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "AssetsReclaimed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum ClaimLinkImplementation.AssetType",
+        "name": "assetType",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "ClaimLinkCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "claimer",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "Claimed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newExpirationTime",
+        "type": "uint256"
+      }
+    ],
+    "name": "ExpirationExtended",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "version",
+        "type": "uint64"
+      }
+    ],
+    "name": "Initialized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "remainingAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "LinkCancelled",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [],
+    "name": "LinkPaused",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [],
+    "name": "LinkUnpaused",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "accessMode",
+    "outputs": [
+      {
+        "internalType": "enum ClaimLinkImplementation.AccessMode",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "allowedAddresses",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "allowedAmounts",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "assetAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "assetType",
+    "outputs": [
+      {
+        "internalType": "enum ClaimLinkImplementation.AssetType",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "claimer",
+        "type": "address"
+      }
+    ],
+    "name": "canClaim",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      },
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "cancel",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "claim",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      }
+    ],
+    "name": "claimWithProof",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "claimers",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "creator",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "expirationTime",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "newExpirationTime",
+        "type": "uint256"
+      }
+    ],
+    "name": "extendExpiration",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "claimer",
+        "type": "address"
+      }
+    ],
+    "name": "getClaimableAmount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getClaimers",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getRemainingAmount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "hasClaimed",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_creator",
+        "type": "address"
+      },
+      {
+        "internalType": "enum ClaimLinkImplementation.AssetType",
+        "name": "_assetType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "address",
+        "name": "_assetAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_totalAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum ClaimLinkImplementation.AccessMode",
+        "name": "_accessMode",
+        "type": "uint8"
+      },
+      {
+        "internalType": "enum ClaimLinkImplementation.SplitMode",
+        "name": "_splitMode",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_expirationTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_maxClaimers",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address[]",
+        "name": "_allowlist",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_customAmounts",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "address",
+        "name": "_proofAddress",
+        "type": "address"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "isExpired",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "maxClaimers",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "pause",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "proofAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "reclaimAssets",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "splitMode",
+    "outputs": [
+      {
+        "internalType": "enum ClaimLinkImplementation.SplitMode",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "status",
+    "outputs": [
+      {
+        "internalType": "enum ClaimLinkImplementation.LinkStatus",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalAmount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalClaimed",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "unpause",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
+  }
 ] as const;
 
 // Enum types for TypeScript

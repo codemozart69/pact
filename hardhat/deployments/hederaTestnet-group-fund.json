@@ -1,0 +1,9 @@
+{
+  "network": "hederaTestnet",
+  "timestamp": "2026-02-07T21:41:58.490Z",
+  "deployer": "0xab045170c1490ab3150343de134b80724f5934c9",
+  "contracts": {
+    "GroupFundFactory": "0xb6e1dea4ed2b75125d071f61414962202cf706d4",
+    "GroupFundImplementation": "0xE9dce254f731edb219f74D257fAFcffbc4581DF2"
+  }
+}

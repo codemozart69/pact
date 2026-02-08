@@ -9,7 +9,7 @@ import {
 import { formatEther, parseEther } from "viem";
 
 // Hardcoded for reliability during testnet phase, as env vars require server restart
-const FACTORY_ADDRESS = "0x0f3d7f890f7582af4d19665e48c9e6fcf902a221";
+const FACTORY_ADDRESS = "0xb6e1dea4ed2b75125d071f61414962202cf706d4";
 
 export function useGroupFundFactory() {
     const { writeContractAsync } = useWriteContract();

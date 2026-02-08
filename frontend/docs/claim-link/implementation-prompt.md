@@ -2,13 +2,13 @@
 
 ## 🎯 Project Context
 
-You are building the **Claim Link** feature for Pact, a Web3 finance app on Mantle Sepolia testnet. This is the first feature requiring smart contract development. The project uses:
+You are building the **Claim Link** feature for Pact, a Web3 finance app on Hedera Testnet (Chain ID 296). This is the first feature requiring smart contract development. The project uses:
 
 - **Frontend**: Next.js 14 (App Router), React 19, TypeScript, Tailwind CSS, shadcn/ui
 - **Web3**: wagmi v2, viem v2, Reown AppKit (wallet connection)
 - **Backend**: Convex (real-time database)
 - **Smart Contracts**: Hardhat v3, Solidity 0.8.28, OpenZeppelin contracts
-- **Network**: Mantle Sepolia Testnet
+- **Network**: Hedera Testnet
 
 **Reference Implementation**: The Payment Link feature (`frontend/components/home/payment-link-sheet.tsx` and related files) provides the UI/UX patterns to follow.
 
@@ -17,7 +17,7 @@ You are building the **Claim Link** feature for Pact, a Web3 finance app on Mant
 ## 📋 Feature Overview
 
 **Claim Link** allows users to:
-1. Lock assets (MNT, ERC20 tokens) into a smart contract
+1. Lock assets (HBAR, ERC20 tokens) into a smart contract
 2. Generate a shareable link (e.g., `pact.money/claim/abc123#0x...`)
 3. Enable others to claim those assets based on rules (anyone with link, or specific allowlist)
 4. Track claims, manage expiration, and reclaim unclaimed assets
@@ -34,7 +34,7 @@ You are building the **Claim Link** feature for Pact, a Web3 finance app on Mant
 - **Access Control**: 
   - "Anyone" mode: Cryptographic proof (ECDSA signatures) - **private key NEVER stored on backend**
   - "Allowlist" mode: On-chain address verification
-- **Asset Types**: MNT (native) and ERC20 tokens (single asset per link)
+- **Asset Types**: HBAR (native) and ERC20 tokens (single asset per link)
 - **Security**: OpenZeppelin's `ReentrancyGuard`, `Ownable`, `ECDSA`, standard CEI pattern
 - **Limits**: Max 50 addresses for allowlist, max 50 claimers for "anyone + equal splits"
 

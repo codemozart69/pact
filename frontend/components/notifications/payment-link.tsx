@@ -74,7 +74,7 @@ export function PaymentLinkReceivedNotification({
         avatar={fromUser?.profileImageUrl}
         fallbackIcon={<Link2 className="h-5 w-5" />}
         title="Payment received via link"
-        description={`${payerName} paid ${amount} MNT${message ? ` for: ${message}` : ""}`}
+        description={`${payerName} paid ${amount} HBAR${message ? ` for: ${message}` : ""}`}
         timestamp={timestamp}
         isRead={isRead}
         onClick={handleClick}
@@ -132,7 +132,7 @@ export function PaymentLinkReceivedNotification({
                 Amount Paid
               </div>
               <div className={`text-4xl font-bold ${ACTION_COLORS.paymentLink.text.primary}`}>
-                {payment?.amount || amount} MNT
+                {payment?.amount || amount} HBAR
               </div>
             </div>
 
@@ -171,7 +171,7 @@ export function PaymentLinkReceivedNotification({
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-500">Transaction</span>
                   <a
-                    href={`https://explorer.testnet.mantle.xyz/tx/${payment.transactionHash}`}
+                    href={`https://hashscan.io/testnet/transaction/${payment.transactionHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`flex items-center gap-1 font-medium ${ACTION_COLORS.send.text.primary} hover:${ACTION_COLORS.send.text.secondary}`}

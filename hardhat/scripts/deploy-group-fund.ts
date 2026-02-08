@@ -4,13 +4,12 @@ import fs from "fs";
 import path from "path";
 
 async function main() {
-    const networkName = process.env.HARDHAT_NETWORK || "mantleSepolia";
+    const networkName = process.env.HARDHAT_NETWORK || "hederaTestnet";
 
     console.log(`\n🚀 Deploying GroupFundFactory to ${networkName}...\n`);
 
     const { viem } = await network.connect({
         network: networkName,
-        chainType: "op",
     });
 
     const publicClient = await viem.getPublicClient();

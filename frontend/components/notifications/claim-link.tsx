@@ -19,7 +19,7 @@ import { User, X } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { formatFullDate } from "@/lib/date-utils";
-import { formatMntValue, formatAddress } from "@/lib/format-utils";
+import { formatHbarValue, formatAddress } from "@/lib/format-utils";
 import { ACTION_COLORS, getActionLightGradient } from "@/lib/action-colors";
 import { formatEther } from "viem";
 
@@ -88,7 +88,7 @@ export function ClaimLinkClaimedNotification({
         avatar={fromUser?.profileImageUrl}
         fallbackIcon={<Link2 className="h-5 w-5" />}
         title="Claim Link Claimed"
-        description={`${claimerName} claimed ${claimedAmount} MNT from "${title}"`}
+        description={`${claimerName} claimed ${claimedAmount} HBAR from "${title}"`}
         timestamp={timestamp}
         isRead={isRead}
         onClick={handleClick}
@@ -153,7 +153,7 @@ export function ClaimLinkClaimedNotification({
                 Amount Claimed
               </div>
               <div className={`text-4xl font-bold ${ACTION_COLORS.claimLink.text.primary}`}>
-                {formatMntValue(claimLink?.totalAmount || "0")} MNT
+                {formatHbarValue(claimLink?.totalAmount || "0")} HBAR
               </div>
             </div>
 

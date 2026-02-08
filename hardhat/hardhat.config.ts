@@ -37,14 +37,13 @@ export default defineConfig({
       type: "edr-simulated",
       chainType: "op",
     },
-    mantleSepolia: {
+    hederaTestnet: {
       type: "http",
-      chainType: "op",
-      url: process.env.MANTLE_SEPOLIA_RPC_URL || "https://rpc.sepolia.mantle.xyz",
-      accounts: process.env.MANTLE_SEPOLIA_PRIVATE_KEY
-        ? [process.env.MANTLE_SEPOLIA_PRIVATE_KEY]
+      url: process.env.HEDERA_TESTNET_RPC_URL || "https://testnet.hashio.io/api",
+      accounts: process.env.HEDERA_TESTNET_PRIVATE_KEY
+        ? [process.env.HEDERA_TESTNET_PRIVATE_KEY]
         : [],
-      chainId: 5003,
+      chainId: 296,
     }
   },
 });
