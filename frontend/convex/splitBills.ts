@@ -39,7 +39,7 @@ async function recomputeSplitTotals(
   const paidCount = paidParticipants.length;
 
   const totalCollected = paidParticipants
-    .reduce((sum: bigint, p) => sum + BigInt(p.amount), 0n)
+    .reduce((sum: bigint, p) => sum + BigInt(p.amount), BigInt(0))
     .toString();
 
   await ctx.db.patch(splitBillId, {
@@ -124,7 +124,7 @@ export const createSplitBill = mutation({
 
       participantsWithAmounts = sortedParticipants.map((p, i) => ({
         userId: p.userId,
-        amount: (baseAmount + (i < Number(remainder) ? 1n : 0n)).toString(),
+        amount: (baseAmount + (i < Number(remainder) ? BigInt(1) : BigInt(0))).toString(),
       }));
     } else {
       // Custom amounts - validate sum
@@ -136,7 +136,7 @@ export const createSplitBill = mutation({
 
       const sum = args.participants.reduce(
         (acc, p) => acc + BigInt(p.amount!),
-        0n,
+        BigInt(0),
       );
 
       if (sum !== totalAmountBigInt) {

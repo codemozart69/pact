@@ -12,9 +12,7 @@ export function formatAddress(address: string) {
 
 export function normalizeAddress(address: string | null | undefined): string {
   if (!address) return "";
-  // Handle XMTP format "address:inboxId" if present
-  const clean = address.includes(":") ? address.split(":").pop()! : address;
-  return clean.toLowerCase();
+  return address.toLowerCase();
 }
 
 export function areAddressesEqual(a: string | null | undefined, b: string | null | undefined): boolean {

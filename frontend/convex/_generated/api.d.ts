@@ -16,6 +16,7 @@ import type * as friendships from "../friendships.js";
 import type * as groupPacts from "../groupPacts.js";
 import type * as groups from "../groups.js";
 import type * as inviteCodes from "../inviteCodes.js";
+import type * as messages from "../messages.js";
 import type * as notifications from "../notifications.js";
 import type * as paymentLinks from "../paymentLinks.js";
 import type * as paymentRequests from "../paymentRequests.js";
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   groupPacts: typeof groupPacts;
   groups: typeof groups;
   inviteCodes: typeof inviteCodes;
+  messages: typeof messages;
   notifications: typeof notifications;
   paymentLinks: typeof paymentLinks;
   paymentRequests: typeof paymentRequests;

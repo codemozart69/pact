@@ -16,22 +16,43 @@ export default defineSchema({
     .index("by_username", ["username"])
     .index("by_email", ["email"]),
 
-  // Direct message conversations metadata
+  // Direct message channels (Shared between two users)
+  dmChannels: defineTable({
+    participant1: v.id("users"),
+    participant2: v.id("users"),
+    lastMessageId: v.optional(v.id("messages")),
+    lastMessageAt: v.number(),
+  })
+    .index("by_participant1", ["participant1"])
+    .index("by_participant2", ["participant2"])
+    .index("by_participants", ["participant1", "participant2"]), // Ensure uniqueness logic in code
+
+  // User-specific view of a conversation
   conversations: defineTable({
     userId: v.id("users"),
-    peerInboxId: v.string(), // XMTP inbox ID
-    peerUserId: v.optional(v.id("users")), // App user ID if they're a user
+    peerUserId: v.optional(v.id("users")), // For DMs
+    dmChannelId: v.optional(v.id("dmChannels")), // Link to shared DM channel
+    channelType: v.optional(v.union(v.literal("dm"), v.literal("group"))),
+    lastMessageId: v.optional(v.id("messages")),
     lastMessageAt: v.number(),
-    lastMessagePreview: v.optional(v.string()),
-    lastMessageId: v.optional(v.string()), // Added for idempotency
-    lastReadMessageId: v.optional(v.string()), // XMTP message ID
     unreadCount: v.number(),
-
     isMuted: v.boolean(),
   })
     .index("by_user", ["userId"])
     .index("by_user_lastMessage", ["userId", "lastMessageAt"])
-    .index("by_user_peer", ["userId", "peerInboxId"]),
+    // Unique index for DMs to ensure only one conversation per pair
+    .index("by_user_peer", ["userId", "peerUserId"]),
+
+  messages: defineTable({
+    dmChannelId: v.optional(v.id("dmChannels")), // For DMs (Shared ID)
+    groupId: v.optional(v.id("groups")),         // For Group Chats
+    senderId: v.id("users"),
+    content: v.string(),
+    type: v.union(v.literal("text"), v.literal("image"), v.literal("system")),
+    createdAt: v.number(),
+  })
+    .index("by_dmChannel", ["dmChannelId", "createdAt"])
+    .index("by_group", ["groupId", "createdAt"]),
 
   friendships: defineTable({
     requesterId: v.id("users"),
@@ -78,6 +99,7 @@ export default defineSchema({
       v.literal("split_bill_completed"),
       v.literal("split_bill_closed"),
       v.literal("split_bill_cancelled"),
+      v.literal("message_received"), // NEW
     ),
     isRead: v.boolean(),
     fromUserId: v.optional(v.id("users")),
@@ -89,6 +111,7 @@ export default defineSchema({
     paymentLinkId: v.optional(v.id("paymentLinks")),
     claimLinkId: v.optional(v.id("claimLinks")),
     splitBillId: v.optional(v.id("splitBills")),
+    messageId: v.optional(v.id("messages")), // NEW
     amount: v.optional(v.number()),
     message: v.optional(v.string()),
   })
@@ -301,7 +324,6 @@ export default defineSchema({
     imageType: v.union(v.literal("emoji"), v.literal("image")),
     accentColor: v.string(),
     creatorId: v.id("users"),
-    xmtpTopic: v.optional(v.string()), // XMTP conversation ID (topic)
     privacy: v.union(v.literal("public"), v.literal("private")),
     joinMethod: v.union(
       v.literal("request"),

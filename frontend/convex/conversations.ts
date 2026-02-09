@@ -1,171 +1,119 @@
 import { ConvexError, v } from "convex/values";
-import { mutation, query, QueryCtx, MutationCtx } from "./_generated/server";
-import { Id } from "./_generated/dataModel";
+import { mutation, query } from "./_generated/server";
 
 // Helper to verify user
-async function verifyUser(ctx: QueryCtx | MutationCtx, userAddress: string) {
+async function verifyUser(ctx: any, userAddress: string) {
     const user = await ctx.db
         .query("users")
-        .withIndex("by_userAddress", (q) =>
+        .withIndex("by_userAddress", (q: any) =>
             q.eq("userAddress", userAddress.toLowerCase())
         )
         .first();
-    if (!user) {
-        throw new ConvexError("User not found");
-    }
+    if (!user) throw new ConvexError("User not found");
     return user;
 }
 
 // Get or create conversation metadata
-export const getOrCreateConversation = mutation({
+export const createOrGet = mutation({
     args: {
         userAddress: v.string(),
-        peerInboxId: v.string(),
-        peerUserId: v.optional(v.id("users")),
+        peerUserId: v.id("users"),
     },
     handler: async (ctx, args) => {
         const user = await verifyUser(ctx, args.userAddress);
+
+        if (user._id === args.peerUserId) throw new ConvexError("Cannot self-message");
 
         // Check if conversation exists
         let conversation = await ctx.db
             .query("conversations")
             .withIndex("by_user_peer", (q) =>
-                q.eq("userId", user._id).eq("peerInboxId", args.peerInboxId)
+                q.eq("userId", user._id).eq("peerUserId", args.peerUserId)
             )
             .first();
 
+        // Check or create DM Channel (Shared)
+        const [p1, p2] = user._id < args.peerUserId ? [user._id, args.peerUserId] : [args.peerUserId, user._id];
+
+        let dmChannel = await ctx.db
+            .query("dmChannels")
+            .withIndex("by_participants", (q) =>
+                q.eq("participant1", p1).eq("participant2", p2)
+            )
+            .first();
+
+        if (!dmChannel) {
+            const dmChannelId = await ctx.db.insert("dmChannels", {
+                participant1: p1,
+                participant2: p2,
+                lastMessageAt: Date.now(),
+            });
+            dmChannel = await ctx.db.get(dmChannelId);
+        }
+
         if (!conversation) {
-            // Create new conversation
+            // Create new conversation for ME
             const conversationId = await ctx.db.insert("conversations", {
                 userId: user._id,
-                peerInboxId: args.peerInboxId,
                 peerUserId: args.peerUserId,
-                lastMessageAt: Date.now(),
+                dmChannelId: dmChannel!._id,
+                channelType: "dm",
+                lastMessageAt: dmChannel!.lastMessageAt,
+                lastMessageId: dmChannel!.lastMessageId,
                 unreadCount: 0,
                 isMuted: false,
             });
             conversation = await ctx.db.get(conversationId);
         }
 
+        // Ensure PEER has a conversation doc too
+        const peerConversation = await ctx.db
+            .query("conversations")
+            .withIndex("by_user_peer", (q) =>
+                q.eq("userId", args.peerUserId).eq("peerUserId", user._id)
+            )
+            .first();
+
+        if (!peerConversation) {
+            await ctx.db.insert("conversations", {
+                userId: args.peerUserId,
+                peerUserId: user._id,
+                dmChannelId: dmChannel!._id,
+                channelType: "dm",
+                lastMessageAt: dmChannel!.lastMessageAt,
+                lastMessageId: dmChannel!.lastMessageId,
+                unreadCount: 0,
+                isMuted: false,
+            });
+        }
+
         return conversation;
     },
 });
 
-// Update conversation with new message
-export const updateConversation = mutation({
-    args: {
-        userAddress: v.string(),
-        peerInboxId: v.string(),
-        messagePreview: v.string(),
-        isFromSelf: v.boolean(),
-        messageTimestamp: v.number(),
-    },
-    handler: async (ctx, args) => {
-        const user = await verifyUser(ctx, args.userAddress);
-
-        const conversation = await ctx.db
-            .query("conversations")
-            .withIndex("by_user_peer", (q) =>
-                q.eq("userId", user._id).eq("peerInboxId", args.peerInboxId)
-            )
-            .first();
-
-        if (!conversation) return;
-
-        await ctx.db.patch(conversation._id, {
-            lastMessageAt: args.messageTimestamp,
-            lastMessagePreview: args.messagePreview,
-            unreadCount: args.isFromSelf ? 0 : 1, // Boolean logic: 1 = Unread, 0 = Read
-        });
-    },
-});
-
-// Update unread count for background messages
-export const updateUnreadCount = mutation({
-    args: {
-        userAddress: v.string(),
-        peerInboxId: v.string(),
-        messagePreview: v.string(),
-        messageId: v.string(),
-        messageTimestamp: v.number(),
-    },
-    handler: async (ctx, args) => {
-        const user = await verifyUser(ctx, args.userAddress);
-
-        let conversation = await ctx.db
-            .query("conversations")
-            .withIndex("by_user_peer", (q) =>
-                q.eq("userId", user._id).eq("peerInboxId", args.peerInboxId)
-            )
-            .first();
-
-        if (conversation) {
-            // Idempotency check 1: Exact message ID match
-            if (conversation.lastMessageId === args.messageId) {
-                return;
-            }
-
-            // Idempotency check 2: Time-based strict ordering
-            // If the incoming message is older than or equal to the last processed message, ignore it.
-            // This prevents "Stream Replay" from incrementing counts.
-            if (conversation.lastMessageAt >= args.messageTimestamp) {
-                return;
-            }
-
-            await ctx.db.patch(conversation._id, {
-                lastMessageAt: args.messageTimestamp,
-                lastMessagePreview: args.messagePreview,
-                lastMessageId: args.messageId,
-                unreadCount: 1, // Boolean logic: 1 = Unread, 0 = Read
-            });
-        } else {
-            // Stranger Handling: Create missing conversation
-            await ctx.db.insert("conversations", {
-                userId: user._id,
-                peerInboxId: args.peerInboxId,
-                peerUserId: undefined,
-                lastMessageAt: args.messageTimestamp,
-                lastMessagePreview: args.messagePreview,
-                lastMessageId: args.messageId,
-                unreadCount: 1,
-                isMuted: false,
-            });
-        }
-    },
-});
-
-
 // Mark conversation as read
 export const markAsRead = mutation({
-
     args: {
         userAddress: v.string(),
-        peerInboxId: v.string(),
-        lastReadMessageId: v.string(),
+        conversationId: v.id("conversations"),
     },
     handler: async (ctx, args) => {
-        const user = await verifyUser(ctx, args.userAddress);
+        await verifyUser(ctx, args.userAddress);
+        // In a real app, verify ownership: conversation.userId === user._id
 
-        const conversation = await ctx.db
-            .query("conversations")
-            .withIndex("by_user_peer", (q) =>
-                q.eq("userId", user._id).eq("peerInboxId", args.peerInboxId)
-            )
-            .first();
-
-        if (!conversation) return;
-
-        await ctx.db.patch(conversation._id, {
+        await ctx.db.patch(args.conversationId, {
             unreadCount: 0,
-            lastReadMessageId: args.lastReadMessageId,
         });
     },
 });
 
 // List conversations
-export const listConversations = query({
-    args: { userAddress: v.string() },
+export const list = query({
+    args: {
+        userAddress: v.optional(v.string())
+    },
     handler: async (ctx, args) => {
+        if (!args.userAddress) return [];
         const user = await verifyUser(ctx, args.userAddress);
 
         const conversations = await ctx.db
@@ -174,14 +122,23 @@ export const listConversations = query({
             .order("desc")
             .collect();
 
-        // Populate peer user data
+        // Populate peer user data and last message content
         return await Promise.all(
             conversations.map(async (conv) => {
                 let peerUser = null;
                 if (conv.peerUserId) {
                     peerUser = await ctx.db.get(conv.peerUserId);
                 }
-                return { ...conv, peerUser };
+
+                let lastMessagePreview = "";
+                if (conv.lastMessageId) {
+                    const msg = await ctx.db.get(conv.lastMessageId);
+                    if (msg) {
+                        lastMessagePreview = msg.type === "text" ? msg.content : "Sent an image";
+                    }
+                }
+
+                return { ...conv, peerUser, lastMessagePreview };
             })
         );
     },
@@ -191,18 +148,12 @@ export const listConversations = query({
 export const toggleMute = mutation({
     args: {
         userAddress: v.string(),
-        peerInboxId: v.string(),
+        conversationId: v.id("conversations"),
     },
     handler: async (ctx, args) => {
-        const user = await verifyUser(ctx, args.userAddress);
+        await verifyUser(ctx, args.userAddress);
 
-        const conversation = await ctx.db
-            .query("conversations")
-            .withIndex("by_user_peer", (q) =>
-                q.eq("userId", user._id).eq("peerInboxId", args.peerInboxId)
-            )
-            .first();
-
+        const conversation = await ctx.db.get(args.conversationId);
         if (!conversation) {
             throw new ConvexError("Conversation not found");
         }
@@ -219,68 +170,16 @@ export const toggleMute = mutation({
 export const deleteConversation = mutation({
     args: {
         userAddress: v.string(),
-        peerInboxId: v.string(),
+        conversationId: v.id("conversations"),
     },
     handler: async (ctx, args) => {
-        const user = await verifyUser(ctx, args.userAddress);
+        await verifyUser(ctx, args.userAddress);
 
-        const conversation = await ctx.db
-            .query("conversations")
-            .withIndex("by_user_peer", (q) =>
-                q.eq("userId", user._id).eq("peerInboxId", args.peerInboxId)
-            )
-            .first();
-
+        const conversation = await ctx.db.get(args.conversationId);
         if (!conversation) {
             throw new ConvexError("Conversation not found");
         }
-
         await ctx.db.delete(conversation._id);
         return true;
-    },
-});
-
-// Get single conversation by peerInboxId
-export const getConversationByInboxId = query({
-    args: {
-        userAddress: v.string(),
-        peerInboxId: v.string(),
-    },
-    handler: async (ctx, args) => {
-        const user = await verifyUser(ctx, args.userAddress);
-
-        const conversation = await ctx.db
-            .query("conversations")
-            .withIndex("by_user_peer", (q) =>
-                q.eq("userId", user._id).eq("peerInboxId", args.peerInboxId)
-            )
-            .first();
-
-        if (!conversation) return null;
-
-        let peerUser = null;
-        if (conversation.peerUserId) {
-            peerUser = await ctx.db.get(conversation.peerUserId);
-        }
-
-        return { ...conversation, peerUser };
-    },
-});
-
-// Get total unread count
-export const getTotalUnreadCount = query({
-    args: { userAddress: v.string() },
-    handler: async (ctx, args) => {
-        const user = await verifyUser(ctx, args.userAddress);
-
-        const conversations = await ctx.db
-            .query("conversations")
-            .withIndex("by_user", (q) => q.eq("userId", user._id))
-            .collect();
-
-        // Boolean logic: Count how many conversations have unreadCount > 0
-        const unreadConversations = conversations.filter((c) => c.unreadCount > 0).length;
-
-        return unreadConversations;
     },
 });

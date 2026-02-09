@@ -7,8 +7,6 @@ import { headers } from "next/headers";
 import ContextProvider from "@/context";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 import { LayoutWrapper } from "@/components/layout-wrapper";
-import { XmtpProvider } from "@/providers/xmtp-provider";
-import { GlobalMessageListener } from "@/components/messages/global-message-listener";
 
 
 const geistSans = Geist({
@@ -68,11 +66,7 @@ export default async function RootLayout({
       >
         <ContextProvider cookies={cookies}>
           <ConvexClientProvider>
-            <XmtpProvider>
-              <GlobalMessageListener />
-              <LayoutWrapper>{children}</LayoutWrapper>
-            </XmtpProvider>
-
+            <LayoutWrapper>{children}</LayoutWrapper>
             <Toaster richColors />
           </ConvexClientProvider>
         </ContextProvider>

@@ -48,3 +48,8 @@ next-env.d.ts
 
 # Local private notes
 docs/.notes/
+
+# Vercel Skills
+.agent/
+.agents/
+.augment/

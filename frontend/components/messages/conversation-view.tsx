@@ -1,43 +1,52 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { Client, Conversation } from "@xmtp/browser-sdk";
 import { useMessages } from "@/hooks/use-messages";
 import { Loader2 } from "lucide-react";
 import MessageBubble from "./message-bubble";
 import MessageInput from "./message-input";
-import { areAddressesEqual, formatAddress } from "@/lib/utils";
 import ConversationHeader from "./conversation-header";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Id } from "@/convex/_generated/dataModel";
+import { useAppKitAccount } from "@reown/appkit/react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 interface ConversationViewProps {
-    inboxId?: string; // Optional for Groups
-    conversation?: Conversation; // Optional passed conversation object
+    conversationId?: Id<"conversations">;
+    groupId?: Id<"groups">;
     isGroup?: boolean;
-    members?: { userAddress?: string; name?: string }[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    xmtpClient?: Client<any> | null; // Optional if using context hook inside, but we pass it
+    members?: { userId?: Id<"users">; userAddress?: string; name?: string; profileImageUrl?: string }[];
     onBack?: () => void;
-    peerAddress?: string; // For key uniqueness in groups
 }
 
 export default function ConversationView({
-    inboxId,
-    conversation,
+    conversationId,
+    groupId,
     isGroup = false,
     members = [],
-    xmtpClient,
     onBack,
-    peerAddress,
 }: ConversationViewProps) {
-    const { messages, isLoading, isSending, sendMessage, sendReaction, peerUser } = useMessages(
-        xmtpClient || null,
-        inboxId || null,
-        conversation
+    const { messages, isLoading, isSending, sendMessage, sendReaction } = useMessages(
+        conversationId,
+        groupId
     );
 
+    const handleSendMessage = async (content: string) => {
+        try {
+            await sendMessage(content, "text");
+            return true;
+        } catch (error) {
+            return false;
+        }
+    };
+
+    const { address } = useAppKitAccount();
+
+    // Fetch current user to get their ID for "isFromSelf" check
+    const user = useQuery(api.users.getUser, address ? { userAddress: address } : "skip");
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const scrollAreaRef = useRef<HTMLDivElement>(null);
 
     // Scroll to bottom when messages change
     useEffect(() => {
@@ -56,7 +65,9 @@ export default function ConversationView({
     return (
         <div className="flex h-full flex-col rounded-xl border border-zinc-200 bg-white">
             {/* Header */}
-            <ConversationHeader inboxId={inboxId} onBack={onBack} />
+            {!isGroup && (
+                <ConversationHeader conversationId={conversationId} groupId={groupId} onBack={onBack} />
+            )}
 
             {/* Messages Area */}
             <div className="relative flex-1 overflow-hidden">
@@ -77,44 +88,54 @@ export default function ConversationView({
                     <ScrollArea className="h-full">
                         <div className="p-4">
                             {messages.map((message, index) => {
+                                // Logic to determine if from self
+                                // message.senderId is Id<"users">
+                                const isFromSelf = user && message.senderId === user._id;
+
                                 // Group messages by sender and time gaps
                                 const prevMessage = messages[index - 1];
                                 const isSequence = prevMessage &&
-                                    areAddressesEqual(prevMessage.senderInboxId, message.senderInboxId) &&
-                                    (message.sentAt - prevMessage.sentAt < 5 * 60 * 1000); // 5 min gap
+                                    prevMessage.senderId === message.senderId &&
+                                    (message.createdAt - prevMessage.createdAt < 5 * 60 * 1000); // 5 min gap
 
                                 const showTimestamp = !isSequence && (
                                     index === 0 ||
-                                    (message.sentAt - (prevMessage?.sentAt || 0) > 5 * 60 * 1000)
+                                    (message.createdAt - (prevMessage?.createdAt || 0) > 5 * 60 * 1000)
                                 );
 
-                                const showSenderName = isGroup && !message.isFromSelf && !isSequence;
+                                const showSenderName = isGroup && !isFromSelf && !isSequence;
+
+                                // Find sender name and avatar from members list
+                                const senderMember = members.find(m => m.userId === message.senderId);
+                                const senderNameDisplay = senderMember?.name || (isFromSelf ? "You" : "Unknown User");
+                                const senderAvatar = senderMember?.profileImageUrl;
+
+                                const isNewDay = !prevMessage || new Date(message.createdAt).toDateString() !== new Date(prevMessage.createdAt).toDateString();
 
                                 return (
-                                    <MessageBubble
-                                        key={message.id}
-                                        message={message}
-                                        reactions={
-                                            message.reactions && typeof message.reactions === 'object' && !('mine' in message.reactions)
-                                                ? message.reactions as unknown as Record<string, number>
-                                                : message.reactions
-                                                    ? Object.entries(message.reactions as Record<string, { count: number }>).reduce((acc, [emoji, data]) => ({ ...acc, [emoji]: data.count }), {} as Record<string, number>)
-                                                    : undefined
-                                        }
-                                        showTimestamp={showTimestamp}
-                                        senderName={
-                                            showSenderName
-                                                ? members.find(m =>
-                                                    areAddressesEqual(m.userAddress, message.senderInboxId)
-                                                )?.name || formatAddress(message.senderInboxId)
-                                                : undefined
-                                        }
-                                        onReact={sendReaction}
-                                        peerUser={peerUser}
-                                    />
-
-
-
+                                    <div key={message._id}>
+                                        {isNewDay && (
+                                            <div className="my-4 flex justify-center">
+                                                <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs text-zinc-500 dark:bg-zinc-800">
+                                                    {new Date(message.createdAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                                                </span>
+                                            </div>
+                                        )}
+                                        <MessageBubble
+                                            message={{
+                                                id: message._id,
+                                                content: message.content,
+                                                senderId: message.senderId,
+                                                createdAt: message.createdAt,
+                                                isFromSelf: !!isFromSelf,
+                                                reactions: undefined // TODO: Add reaction support
+                                            }}
+                                            showTimestamp={showTimestamp}
+                                            senderName={showSenderName ? senderNameDisplay : undefined}
+                                            senderAvatar={isGroup && !isFromSelf && !isSequence ? senderAvatar : undefined}
+                                            onReact={sendReaction}
+                                        />
+                                    </div>
                                 );
                             })}
                             <div ref={messagesEndRef} />
@@ -124,7 +145,7 @@ export default function ConversationView({
             </div>
 
             {/* Input */}
-            <MessageInput onSend={sendMessage} isSending={isSending} />
+            <MessageInput onSend={handleSendMessage} isSending={isSending} />
         </div>
     );
 }

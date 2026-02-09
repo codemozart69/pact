@@ -5,8 +5,6 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { useRouter } from "next/navigation";
-import type { Client } from "@xmtp/browser-sdk";
-import { Client as XmtpClient } from "@xmtp/browser-sdk";
 import {
     Dialog,
     DialogContent,
@@ -18,27 +16,25 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Loader2, Users, AlertCircle } from "lucide-react";
+import { Search, Loader2, Users } from "lucide-react";
 import { toast } from "sonner";
+import { Id } from "@/convex/_generated/dataModel";
 
 interface NewMessageDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    xmtpClient?: Client<any> | null;
 }
 
 export default function NewMessageDialog({
     open,
     onOpenChange,
-    xmtpClient,
 }: NewMessageDialogProps) {
     const { address } = useAppKitAccount();
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
-    const [isChecking, setIsChecking] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
 
-    const getOrCreateConversation = useMutation(api.conversations.getOrCreateConversation);
+    const getOrCreateConversation = useMutation(api.conversations.createOrGet);
 
     // Get current user
     const currentUser = useQuery(
@@ -61,24 +57,6 @@ export default function NewMessageDialog({
         );
     });
 
-    // Listen for event to start conversation with specific user
-    useEffect(() => {
-        const handleStartConversation = (event: any) => {
-            const { userId, userAddress, name, username, profileImageUrl } = event.detail;
-
-            // Find the friend
-            const friend = friends?.find(f => f._id === userId);
-            if (friend) {
-                handleSelectFriend(friend);
-            }
-        };
-
-        window.addEventListener("start-conversation-with-user", handleStartConversation);
-        return () => {
-            window.removeEventListener("start-conversation-with-user", handleStartConversation);
-        };
-    }, [friends, xmtpClient, address]);
-
     // Reset search when dialog closes
     useEffect(() => {
         if (!open) {
@@ -87,63 +65,31 @@ export default function NewMessageDialog({
     }, [open]);
 
     const handleSelectFriend = async (friend: any) => {
-        if (!address || !xmtpClient) {
-            toast.error("Messaging client not ready");
+        if (!address) {
+            toast.error("Not authenticated");
             return;
         }
 
-        setIsChecking(true);
+        setIsCreating(true);
 
         try {
-            // Check if friend is reachable on XMTP
-            const identifiers = [
-                {
-                    identifier: friend.userAddress,
-                    identifierKind: "Ethereum" as const,
-                },
-            ];
-
-            const reachable = await XmtpClient.canMessage(identifiers);
-            const canMessage = reachable.get(friend.userAddress);
-
-            if (!canMessage) {
-                toast.error(`${friend.name} hasn't set up messaging yet`);
-                setIsChecking(false);
-                return;
-            }
-
-            // Create DM conversation on XMTP
-            const dm = await xmtpClient.conversations.newDmWithIdentifier({
-                identifier: friend.userAddress,
-                identifierKind: "Ethereum" as const,
-            });
-            let peerInboxId = await dm.peerInboxId();
-
-
-            // Ensure peerInboxId is cleaned of colons and 0x prefixes
-            if (peerInboxId.includes(":")) {
-                peerInboxId = peerInboxId.split(":").pop()!;
-            }
-            if (peerInboxId.startsWith("0x")) {
-                peerInboxId = peerInboxId.slice(2);
-            }
-
             // Get or create conversation metadata in Convex
-            await getOrCreateConversation({
+            const conversation = await getOrCreateConversation({
                 userAddress: address,
-                peerInboxId: peerInboxId,
-                peerUserId: friend._id,
+                peerUserId: friend._id as Id<"users">,
             });
 
-            // Close dialog and navigate to conversation
-            onOpenChange(false);
-            router.push(`/messages?conversation=${peerInboxId}`);
-            toast.success(`Started conversation with ${friend.name}`);
+            if (conversation) {
+                // Close dialog and navigate to conversation
+                onOpenChange(false);
+                router.push(`/messages?conversation=${conversation._id}`);
+                toast.success(`Started conversation with ${friend.name}`);
+            }
         } catch (error: any) {
             console.error("Failed to start conversation:", error);
             toast.error("Failed to start conversation");
         } finally {
-            setIsChecking(false);
+            setIsCreating(false);
         }
     };
 
@@ -194,7 +140,7 @@ export default function NewMessageDialog({
                                     <button
                                         key={friend._id}
                                         onClick={() => handleSelectFriend(friend)}
-                                        disabled={isChecking}
+                                        disabled={isCreating}
                                         className="flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors hover:bg-zinc-50 disabled:opacity-50"
                                     >
                                         <Avatar className="h-10 w-10">
@@ -216,7 +162,7 @@ export default function NewMessageDialog({
                                                 @{friend.username}
                                             </p>
                                         </div>
-                                        {isChecking && (
+                                        {isCreating && (
                                             <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
                                         )}
                                     </button>
@@ -224,19 +170,6 @@ export default function NewMessageDialog({
                             </div>
                         )}
                     </ScrollArea>
-
-                    {/* Info Message */}
-                    {!xmtpClient && (
-                        <div className="flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
-                            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                            <div>
-                                <p className="font-medium">Messaging not ready</p>
-                                <p className="text-xs text-amber-800">
-                                    Please wait for messaging to initialize
-                                </p>
-                            </div>
-                        </div>
-                    )}
                 </div>
             </DialogContent>
         </Dialog>

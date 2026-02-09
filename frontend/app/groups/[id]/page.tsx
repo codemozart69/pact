@@ -27,8 +27,7 @@ import InviteMembersModal from "@/components/groups/invite-members-modal";
 import ActivityFeedFilters from "@/components/groups/activity-feed-filters";
 import { CreatePactSheet } from "@/components/groups/pacts/create-pact-sheet";
 import { PactCard } from "@/components/groups/pacts/pact-card";
-import { CreatePactSheet } from "@/components/groups/pacts/create-pact-sheet";
-import { PactCard } from "@/components/groups/pacts/pact-card";
+
 import { PactDetailsSheet } from "@/components/groups/pacts/pact-details-sheet";
 import GroupChatTab from "@/components/groups/chat/group-chat-tab";
 
@@ -443,12 +442,12 @@ export default function GroupDetailPage() {
             <GroupChatTab
               groupId={group._id}
               groupName={group.name}
-              // @ts-expect-error - xmtpTopic is new in schema
-              xmtpTopic={group.xmtpTopic}
               members={group.members.map((m: BackendMember) => ({
+                userId: m._id,
                 userAddress: m.userAddress,
                 role: m.role,
-                name: m.name
+                name: m.name,
+                profileImageUrl: m.profileImageUrl
               }))}
               currentUserAddress={currentUser?.userAddress}
               isCreatorOrAdmin={group.userRole === "admin" || group.creatorId === currentUser?._id}
