@@ -2,10 +2,16 @@
 
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
+import dynamic from "next/dynamic";
 import { TopNav } from "@/components/top-nav";
 import { BottomNav } from "@/components/bottom-nav";
-import SendPaymentSheet from "@/components/home/send-payment-sheet";
-import SplitBillSheet from "@/components/home/split-bill-sheet";
+
+const SendPaymentSheet = dynamic(() => import("@/components/home/send-payment-sheet"), {
+    ssr: false,
+});
+const SplitBillSheet = dynamic(() => import("@/components/home/split-bill-sheet"), {
+    ssr: false,
+});
 
 export function LayoutWrapper({ children }: { children: ReactNode }) {
     const pathname = usePathname();

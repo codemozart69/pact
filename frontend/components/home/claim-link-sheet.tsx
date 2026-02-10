@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useWriteContract, usePublicClient } from "wagmi";
-import { parseEther, formatEther, decodeEventLog } from "viem";
+import { parseEther, decodeEventLog } from "viem";
 import { Id } from "@/convex/_generated/dataModel";
 import {
   Sheet,
@@ -17,55 +16,18 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { format } from "date-fns";
 import {
   Link2,
   X,
-  Image as ImageIcon,
-  Calendar as CalendarIcon,
-  Info,
-  Check,
-  Plus,
-  Trash2,
-  Loader2,
   ArrowLeft,
-  Copy,
-  Eye,
-  Pause,
-  Play,
-  Ban,
-  User,
 } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import EmojiPicker from "emoji-picker-react";
 import {
   generateClaimKeyPair,
   createClaimLinkURL,
 } from "@/lib/crypto/proof-utils";
-import { dateToSeconds, secondsToMillis } from "@/lib/timestamp-utils";
+import { dateToSeconds } from "@/lib/timestamp-utils";
 import {
   CLAIM_LINK_FACTORY_ADDRESS,
   ClaimLinkFactoryABI,
@@ -73,70 +35,22 @@ import {
   AccessMode as ContractAccessMode,
   SplitMode as ContractSplitMode,
 } from "@/lib/contracts/claim-link-abis";
-import { formatFullDate } from "@/lib/date-utils";
-import { formatAddress, formatEtherToHbar, formatHbarValue } from "@/lib/format-utils";
 import { getActionGradient } from "@/lib/action-colors";
+
+// Claim Link sub-components
+import { ClaimLinkCreate } from "./claim-link/claim-link-create";
+import { ClaimLinkList } from "./claim-link/claim-link-list";
+import { ClaimLinkDetails } from "./claim-link/claim-link-details";
+import { ClaimLinkSuccess } from "./claim-link/claim-link-success";
+import {
+  ClaimLink,
+  StatusFilter,
+  SortOption
+} from "./claim-link/claim-link-utils";
 
 type ViewMode = "create" | "list" | "details" | "success";
 type AccessMode = "anyone" | "allowlist";
 type SplitMode = "equal" | "custom";
-type StatusFilter =
-  | "all"
-  | "active"
-  | "paused"
-  | "completed"
-  | "expired"
-  | "cancelled";
-type SortOption = "recent" | "amount" | "claims";
-
-// Type for claim link from Convex (matches actual query return type)
-interface ClaimLink {
-  _id: Id<"claimLinks">;
-  _creationTime: number;
-  creatorId: Id<"users">;
-  contractAddress: string;
-  title: string;
-  description?: string;
-  imageOrEmoji: string;
-  imageType: "emoji" | "image";
-  assetType: "native" | "erc20";
-  assetAddress?: string;
-  assetSymbol?: string;
-  assetDecimals?: number;
-  totalAmount: string;
-  accessMode: "anyone" | "allowlist";
-  splitMode: "none" | "equal" | "custom";
-  allowlist?: string[];
-  customAmounts?: string[];
-  maxClaimers?: number;
-  proofAddress?: string;
-  privateKey?: string;
-  status: "active" | "paused" | "completed" | "cancelled" | "expired";
-  shortId: string;
-  expiresAt?: number;
-  viewCount: number;
-  claimCount: number;
-  totalClaimed: string;
-  lastClaimAt?: number;
-  isExpired?: boolean;
-  claims?: Array<{
-    _id: Id<"claimLinkClaims">;
-    _creationTime: number;
-    claimLinkId: Id<"claimLinks">;
-    claimerUserId?: Id<"users">;
-    claimerAddress: string;
-    amount: string;
-    transactionHash: string;
-    status: "completed" | "failed";
-    timestamp: number;
-    claimer: {
-      _id: Id<"users">;
-      name: string;
-      username: string;
-      profileImageUrl?: string;
-    } | null;
-  }>;
-}
 
 export default function ClaimLinkSheet() {
   const [open, setOpen] = useState(false);
@@ -208,7 +122,7 @@ export default function ClaimLinkSheet() {
   useEffect(() => {
     if (open && claimLinks !== undefined) {
       if (claimLinks.length === 0 && statusFilter === "all") {
-        setViewMode("create");
+        if (viewMode !== "create") setViewMode("create");
       } else if (
         claimLinks.length > 0 &&
         viewMode === "create" &&
@@ -526,8 +440,8 @@ export default function ClaimLinkSheet() {
     }
   };
 
-  const handleCopyCreatedLink = () => {
-    navigator.clipboard.writeText(createdLinkUrl);
+  const handleCopyCreatedLink = (url: string) => {
+    navigator.clipboard.writeText(url);
     toast.success("Link copied to clipboard!");
   };
 
@@ -568,7 +482,7 @@ export default function ClaimLinkSheet() {
     }
   };
 
-  const isValid = title.trim() && amount && parseFloat(amount) > 0;
+  const isValid = !!(title.trim() && amount && parseFloat(amount) > 0);
 
   return (
     <Sheet
@@ -609,7 +523,7 @@ export default function ClaimLinkSheet() {
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
               )}
-              {viewMode === "create" && claimLinks && claimLinks.length > 0 && (
+              {viewMode === "create" && claimLinks && claimLinks.length > 1 && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -645,816 +559,77 @@ export default function ClaimLinkSheet() {
           </SheetDescription>
 
           <ScrollArea className="flex-1 overflow-auto">
-            {/* CREATE VIEW */}
             {viewMode === "create" && (
-              <div className="space-y-6 p-6 pb-10">
-                {/* Visual Selection */}
-                <div className="space-y-2">
-                  <Label>Visual (Image or Emoji)</Label>
-                  <Tabs
-                    value={visualTab}
-                    onValueChange={(v) => setVisualTab(v as "emoji" | "image")}
-                  >
-                    <TabsList className="grid w-fit grid-cols-2">
-                      <TabsTrigger value="image">Image</TabsTrigger>
-                      <TabsTrigger value="emoji">Emoji</TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="image" className="mt-4">
-                      <div className="flex flex-col items-center gap-4">
-                        {imagePreview ? (
-                          <div className="relative h-32 w-32">
-                            <Image
-                              src={imagePreview}
-                              alt="Preview"
-                              fill
-                              className="rounded-lg object-cover"
-                            />
-                            <button
-                              onClick={() => {
-                                setImageFile(null);
-                                setImagePreview("");
-                              }}
-                              className="absolute -top-2 -right-2 z-10 rounded-full bg-red-500 p-1 text-white"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
-                          </div>
-                        ) : (
-                          <label className="flex h-32 w-32 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-zinc-300 hover:border-zinc-400">
-                            <ImageIcon className="h-8 w-8 text-zinc-400" />
-                            <span className="mt-2 text-sm text-zinc-500">
-                              Upload Image
-                            </span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleImageChange}
-                              className="hidden"
-                            />
-                          </label>
-                        )}
-                        <p className="text-xs text-zinc-500">Max 5MB</p>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="emoji" className="mt-4">
-                      <div className="flex flex-col items-center gap-4">
-                        <div className="text-6xl">{selectedEmoji}</div>
-                        <EmojiPicker
-                          onEmojiClick={(emoji) =>
-                            setSelectedEmoji(emoji.emoji)
-                          }
-                          width="fit"
-                          height="300px"
-                        />
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </div>
-
-                {/* Title */}
-                <div className="space-y-2">
-                  <Label>Title *</Label>
-                  <Input
-                    placeholder="e.g., Team Bonus, Event Reward"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    maxLength={100}
-                  />
-                  <p className="text-xs text-zinc-500">
-                    {title.length}/100 characters
-                  </p>
-                </div>
-
-                {/* Description */}
-                <div className="space-y-2">
-                  <Label>Description (Optional)</Label>
-                  <Textarea
-                    placeholder="What is this claim link for?"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    maxLength={500}
-                    rows={3}
-                  />
-                  <p className="text-xs text-zinc-500">
-                    {description.length}/500 characters
-                  </p>
-                </div>
-
-                {/* Total Amount */}
-                <div className="space-y-2">
-                  <Label>Total Amount (HBAR) *</Label>
-                  <Input
-                    type="number"
-                    step="0.000001"
-                    placeholder="0.00"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                  />
-                </div>
-
-                {/* Access Mode */}
-                <div className="space-y-2">
-                  <Label>Who Can Claim?</Label>
-                  <RadioGroup
-                    value={accessMode}
-                    onValueChange={(v) => setAccessMode(v as AccessMode)}
-                  >
-                    <div className="flex items-start space-x-2 rounded-lg border p-4">
-                      <RadioGroupItem value="anyone" id="anyone" />
-                      <div className="flex-1">
-                        <Label htmlFor="anyone" className="font-medium">
-                          Anyone with the link
-                        </Label>
-                        <p className="text-sm text-zinc-500">
-                          Share the link privately - only those with it can
-                          claim
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start space-x-2 rounded-lg border p-4">
-                      <RadioGroupItem value="allowlist" id="allowlist" />
-                      <div className="flex-1">
-                        <Label htmlFor="allowlist" className="font-medium">
-                          Specific addresses only
-                        </Label>
-                        <p className="text-sm text-zinc-500">
-                          Only whitelisted addresses can claim
-                        </p>
-                      </div>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                {/* Split Mode */}
-                <div className="space-y-2">
-                  <Label>How to Split?</Label>
-                  <RadioGroup
-                    value={splitMode}
-                    onValueChange={(v) => setSplitMode(v as SplitMode)}
-                  >
-                    <div className="flex items-start space-x-2 rounded-lg border p-4">
-                      <RadioGroupItem value="equal" id="equal" />
-                      <div className="flex-1">
-                        <Label htmlFor="equal" className="font-medium">
-                          Equal splits
-                        </Label>
-                        <p className="text-sm text-zinc-500">
-                          {accessMode === "anyone"
-                            ? "First N claimers get equal amounts"
-                            : "All addresses get equal amounts"}
-                        </p>
-                      </div>
-                    </div>
-                    {accessMode === "allowlist" && (
-                      <div className="flex items-start space-x-2 rounded-lg border p-4">
-                        <RadioGroupItem value="custom" id="custom" />
-                        <div className="flex-1">
-                          <Label htmlFor="custom" className="font-medium">
-                            Custom amounts
-                          </Label>
-                          <p className="text-sm text-zinc-500">
-                            Specify different amounts for each address
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </RadioGroup>
-                </div>
-
-                {/* Max Claimers (anyone + equal) */}
-                {accessMode === "anyone" && splitMode === "equal" && (
-                  <div className="space-y-2">
-                    <Label>Max Claimers</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="50"
-                      value={maxClaimers}
-                      onChange={(e) => setMaxClaimers(e.target.value)}
-                    />
-                    <div className="flex items-start gap-2 text-xs text-zinc-500">
-                      <Info className="mt-0.5 h-3 w-3 shrink-0" />
-                      <span>
-                        First {maxClaimers} people to claim will each get{" "}
-                        {amount && maxClaimers
-                          ? formatHbarValue((parseFloat(amount) / parseInt(maxClaimers)).toString())
-                          : "0"}{" "}
-                        HBAR
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Allowlist Addresses */}
-                {accessMode === "allowlist" && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label>Addresses ({allowlist.length}/50)</Label>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleAddAllowlistAddress}
-                        disabled={allowlist.length >= 50}
-                      >
-                        <Plus className="mr-1 h-3 w-3" />
-                        Add
-                      </Button>
-                    </div>
-                    <div className="space-y-3">
-                      {allowlist.map((addr, index) => (
-                        <div key={index} className="flex gap-2">
-                          <Input
-                            placeholder="0x..."
-                            value={addr}
-                            onChange={(e) =>
-                              handleAllowlistChange(index, e.target.value)
-                            }
-                            className="flex-1"
-                          />
-                          {splitMode === "custom" && (
-                            <Input
-                              type="number"
-                              step="0.000001"
-                              placeholder="Amount"
-                              value={customAmounts[index]}
-                              onChange={(e) =>
-                                handleCustomAmountChange(index, e.target.value)
-                              }
-                              className="w-32"
-                            />
-                          )}
-                          {allowlist.length > 1 && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() =>
-                                handleRemoveAllowlistAddress(index)
-                              }
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    {splitMode === "equal" && (
-                      <div className="flex items-start gap-2 text-xs text-zinc-500">
-                        <Info className="mt-0.5 h-3 w-3 shrink-0" />
-                        <span>
-                          Each address will receive{" "}
-                          {amount && allowlist.length
-                            ? formatEtherToHbar((parseFloat(amount) / allowlist.length).toString())
-                            : "0.00 HBAR"}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Expiration Date */}
-                <div className="space-y-2">
-                  <Label>Expiration (Optional)</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !expirationDate && "text-muted-foreground",
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {expirationDate ? (
-                          format(expirationDate, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={expirationDate}
-                        onSelect={setExpirationDate}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
-                      />
-                      {expirationDate && (
-                        <div className="border-t p-3">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full"
-                            onClick={() => setExpirationDate(undefined)}
-                          >
-                            Clear expiration
-                          </Button>
-                        </div>
-                      )}
-                    </PopoverContent>
-                  </Popover>
-                  <div className="flex items-start gap-2 text-xs text-zinc-500">
-                    <Info className="mt-0.5 h-3 w-3 shrink-0" />
-                    <span>
-                      After expiration, unclaimed funds can be reclaimed
-                    </span>
-                  </div>
-                </div>
-
-                {/* Create Button */}
-                <div className="flex justify-center pt-4">
-                  <Button
-                    size="lg"
-                    onClick={handleCreateLink}
-                    disabled={!isValid || isCreating}
-                    className="corner-squircle w-fit rounded-[15px]"
-                  >
-                    {isCreating ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating...
-                      </>
-                    ) : (
-                      <>
-                        <Link2 className="mr-2 h-4 w-4" />
-                        Create Claim Link
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
+              <ClaimLinkCreate
+                visualTab={visualTab}
+                setVisualTab={setVisualTab}
+                selectedEmoji={selectedEmoji}
+                setSelectedEmoji={setSelectedEmoji}
+                handleImageChange={handleImageChange}
+                imagePreview={imagePreview}
+                setImageFile={setImageFile}
+                setImagePreview={setImagePreview}
+                title={title}
+                setTitle={setTitle}
+                description={description}
+                setDescription={setDescription}
+                amount={amount}
+                setAmount={setAmount}
+                accessMode={accessMode}
+                setAccessMode={setAccessMode}
+                splitMode={splitMode}
+                setSplitMode={setSplitMode}
+                expirationDate={expirationDate}
+                setExpirationDate={setExpirationDate}
+                maxClaimers={maxClaimers}
+                setMaxClaimers={setMaxClaimers}
+                allowlist={allowlist}
+                handleAddAllowlistAddress={handleAddAllowlistAddress}
+                handleRemoveAllowlistAddress={handleRemoveAllowlistAddress}
+                handleAllowlistChange={handleAllowlistChange}
+                customAmounts={customAmounts}
+                handleCustomAmountChange={handleCustomAmountChange}
+                handleCreateLink={handleCreateLink}
+                isCreating={isCreating}
+                isValid={isValid}
+              />
             )}
 
-            {/* SUCCESS VIEW */}
-            {viewMode === "success" && (
-              <div className="space-y-6 p-6 pb-10">
-                <div className="flex justify-center">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-                    <Check className="h-10 w-10 text-green-600" />
-                  </div>
-                </div>
-
-                {accessMode === "anyone" && (
-                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-                    <div className="flex gap-2">
-                      <Info className="h-5 w-5 shrink-0 text-amber-600" />
-                      <div className="text-sm text-amber-800">
-                        <p className="mb-1 font-medium">
-                          Important: Secret Link
-                        </p>
-                        <p>
-                          This link contains a secret key. Anyone with this link
-                          can claim funds. Share it carefully and only with
-                          intended recipients.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <Label>Your Claim Link</Label>
-                  <div className="rounded-lg bg-zinc-100 p-4">
-                    <p className="font-mono text-sm break-all text-zinc-900">
-                      {createdLinkUrl}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    onClick={handleCopyCreatedLink}
-                    variant="outline"
-                    className="corner-squircle rounded-[15px]"
-                  >
-                    Copy Link
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      if (navigator.share) {
-                        navigator
-                          .share({ url: createdLinkUrl })
-                          .catch(() => { });
-                      } else {
-                        handleCopyCreatedLink();
-                      }
-                    }}
-                    variant="outline"
-                    className="corner-squircle rounded-[15px]"
-                  >
-                    Share
-                  </Button>
-                </div>
-
-                <div className="flex justify-center pt-4">
-                  <Button
-                    onClick={() => {
-                      resetForm();
-                      setOpen(false);
-                    }}
-                    className="corner-squircle w-fit rounded-[15px]"
-                  >
-                    Done
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* LIST VIEW */}
             {viewMode === "list" && (
-              <div className="space-y-4 px-6 pt-0 pb-10">
-                <div className="space-y-4">
-                  <div className="flex justify-center">
-                    <Button
-                      className={`corner-squircle w-fit rounded-[15px] bg-linear-to-r ${getActionGradient('claimLink')} text-white shadow-md hover:shadow-lg`}
-                      size="lg"
-                      onClick={() => setViewMode("create")}
-                    >
-                      <Plus className="mr-2 h-5 w-5" />
-                      Create
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <Tabs
-                      value={statusFilter}
-                      onValueChange={(v) => setStatusFilter(v as StatusFilter)}
-                      className="flex-1"
-                    >
-                      <TabsList className="grid w-fit grid-cols-4">
-                        <TabsTrigger value="all">All</TabsTrigger>
-                        <TabsTrigger value="active">Active</TabsTrigger>
-                        <TabsTrigger value="completed">Completed</TabsTrigger>
-                        <TabsTrigger value="expired">Expired</TabsTrigger>
-                      </TabsList>
-                    </Tabs>
-
-                    <Select
-                      value={sortOption}
-                      onValueChange={(v) => setSortOption(v as SortOption)}
-                    >
-                      <SelectTrigger className="w-fit">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="recent">Recent</SelectItem>
-                        <SelectItem value="amount">Highest Amount</SelectItem>
-                        <SelectItem value="claims">Most Claims</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {claimLinks === undefined ? (
-                  <div className="space-y-3">
-                    {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-40 rounded-[25px]" />
-                    ))}
-                  </div>
-                ) : claimLinks.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-pink-100">
-                      <Link2 className="h-8 w-8 text-pink-600" />
-                    </div>
-                    <h3 className="mb-2 text-lg font-semibold text-zinc-900">
-                      {statusFilter === "all"
-                        ? "No claim links yet"
-                        : `No ${statusFilter} claim links`}
-                    </h3>
-                    <p className="mb-4 text-sm text-zinc-500">
-                      Create shareable links to distribute HBAR to others
-                    </p>
-                    <Button
-                      onClick={() => setViewMode("create")}
-                      className="corner-squircle rounded-[15px]"
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Create Your First Link
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {sortLinks(claimLinks).map((link) => (
-                      <ClaimLinkCard
-                        key={link._id}
-                        link={link}
-                        onClick={() => {
-                          setSelectedLinkId(link._id);
-                          setViewMode("details");
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
+              <ClaimLinkList
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+                sortOption={sortOption}
+                setSortOption={setSortOption}
+                claimLinks={claimLinks}
+                sortLinks={sortLinks}
+                setViewMode={setViewMode}
+                setSelectedLinkId={setSelectedLinkId}
+                getActionGradient={getActionGradient}
+              />
             )}
 
-            {/* DETAILS VIEW */}
             {viewMode === "details" && selectedLink && (
-              <div className="space-y-6 px-6 pt-0 pb-10">
-                <div className="text-center">
-                  <div className="mb-4 flex justify-center">
-                    {selectedLink.imageType === "emoji" ? (
-                      <span className="text-6xl">
-                        {selectedLink.imageOrEmoji}
-                      </span>
-                    ) : (
-                      <div className="relative h-24 w-24">
-                        <Image
-                          src={selectedLink.imageOrEmoji}
-                          alt={selectedLink.title}
-                          fill
-                          className="rounded-lg object-cover"
-                        />
-                      </div>
-                    )}
-                  </div>
+              <ClaimLinkDetails
+                selectedLink={selectedLink as ClaimLink}
+                handleToggleStatus={handleToggleStatus}
+                createClaimLinkURL={createClaimLinkURL}
+                handleCopyCreatedLink={handleCopyCreatedLink}
+              />
+            )}
 
-                  <h2 className="mb-2 text-2xl font-bold text-zinc-900">
-                    {selectedLink.title}
-                  </h2>
-
-                  {selectedLink.description && (
-                    <p className="mb-4 text-zinc-600">
-                      {selectedLink.description}
-                    </p>
-                  )}
-
-                  <div className="mb-4 flex items-center justify-center gap-2">
-                    <Badge variant="outline">
-                      {selectedLink.accessMode === "anyone"
-                        ? "Anyone"
-                        : "Allowlist"}
-                    </Badge>
-                    <Badge variant="outline">
-                      {selectedLink.splitMode === "equal" ? "Equal" : "Custom"}{" "}
-                      Split
-                    </Badge>
-                    {getStatusBadge(selectedLink.status)}
-                  </div>
-                </div>
-
-                {/* Amount Display */}
-                <div className="corner-squircle rounded-[25px] border-2 border-pink-200 bg-pink-50 p-6 text-center">
-                  <div className="mb-1 text-sm font-medium text-pink-700">
-                    Remaining
-                  </div>
-                  <div className="text-4xl font-bold text-pink-600">
-                    {formatHbarValue(selectedLink.maxClaimers ? (parseFloat(selectedLink.totalAmount) / selectedLink.maxClaimers).toString() : selectedLink.totalAmount)}
-                    <span className="text-2xl font-medium text-pink-400"> HBAR</span>
-                  </div>
-                  <div className="mt-2 text-sm text-pink-600">
-                    {selectedLink.claimCount}/{selectedLink.maxClaimers || "∞"}{" "}
-                    claimed
-                  </div>
-                </div>
-
-                {/* Security Warning for "anyone" mode */}
-                {selectedLink.accessMode === "anyone" && (
-                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-                    <div className="flex gap-2">
-                      <Info className="h-5 w-5 shrink-0 text-amber-600" />
-                      <div className="text-sm text-amber-800">
-                        <p className="mb-1 font-medium">Secret Link</p>
-                        <p>
-                          This link contains a secret key. Anyone with the
-                          complete link can claim funds. Share carefully!
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Quick Actions */}
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      // Create full shareable URL with private key if in "anyone" mode
-                      const url =
-                        selectedLink.accessMode === "anyone" &&
-                          selectedLink.privateKey
-                          ? createClaimLinkURL(
-                            selectedLink.shortId,
-                            selectedLink.privateKey as `0x${string}`,
-                          )
-                          : `${window.location.origin}/claim/${selectedLink.shortId}`;
-                      navigator.clipboard.writeText(url);
-                      toast.success("Link copied!");
-                    }}
-                    className="corner-squircle flex-1 rounded-[15px]"
-                  >
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copy Link
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      window.open(`/claim/${selectedLink.shortId}`, "_blank")
-                    }
-                    className="corner-squircle flex-1 rounded-[15px]"
-                  >
-                    <Eye className="mr-2 h-4 w-4" />
-                    Preview
-                  </Button>
-                </div>
-
-                {/* Management Actions */}
-                {selectedLink.status === "active" && (
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleToggleStatus("pause")}
-                      className="corner-squircle flex-1 rounded-[15px]"
-                    >
-                      <Pause className="mr-2 h-4 w-4" />
-                      Pause
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        if (
-                          confirm("Cancel this link? This cannot be undone.")
-                        ) {
-                          handleToggleStatus("cancel");
-                        }
-                      }}
-                      className="corner-squircle flex-1 rounded-[15px] text-red-600"
-                    >
-                      <Ban className="mr-2 h-4 w-4" />
-                      Cancel
-                    </Button>
-                  </div>
-                )}
-
-                {selectedLink.status === "paused" && (
-                  <Button
-                    variant="outline"
-                    onClick={() => handleToggleStatus("resume")}
-                    className="corner-squircle w-full rounded-[15px]"
-                  >
-                    <Play className="mr-2 h-4 w-4" />
-                    Resume Link
-                  </Button>
-                )}
-
-                {/* Claim History */}
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-zinc-900">Claim History</h3>
-                  {selectedLink.claims && selectedLink.claims.length > 0 ? (
-                    <div className="space-y-2">
-                      {selectedLink.claims.map((claim) => (
-                        <div
-                          key={claim._id}
-                          className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3"
-                        >
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={claim.claimer?.profileImageUrl} />
-                            <AvatarFallback>
-                              <User className="h-4 w-4" />
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="min-w-0 flex-1">
-                            <div className="text-sm font-medium text-zinc-900">
-                              {claim.claimer
-                                ? claim.claimer.name
-                                : formatAddress(claim.claimerAddress)}
-                            </div>
-                            <div className="text-xs text-zinc-500">
-                              {formatAddress(claim.claimerAddress)}
-                            </div>
-                            <div className="text-xs text-zinc-400">
-                              {formatFullDate(secondsToMillis(claim.timestamp))}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm font-semibold text-zinc-900">
-                              {formatEther(BigInt(claim.amount))} HBAR
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="rounded-lg border border-zinc-200 p-6 text-center text-sm text-zinc-500">
-                      No claims yet
-                    </div>
-                  )}
-                </div>
-              </div>
+            {viewMode === "success" && (
+              <ClaimLinkSuccess
+                createdLinkUrl={createdLinkUrl}
+                accessMode={accessMode}
+                handleCopyCreatedLink={handleCopyCreatedLink}
+                resetForm={resetForm}
+                setOpen={setOpen}
+              />
             )}
           </ScrollArea>
         </div>
       </SheetContent>
     </Sheet>
-  );
-}
-
-// Helper to get status badge
-function getStatusBadge(status: string) {
-  switch (status) {
-    case "active":
-      return (
-        <Badge
-          variant="outline"
-          className="border-0 bg-green-100 text-green-800"
-        >
-          Active
-        </Badge>
-      );
-    case "paused":
-      return (
-        <Badge
-          variant="outline"
-          className="border-0 bg-amber-100 text-amber-800"
-        >
-          Paused
-        </Badge>
-      );
-    case "completed":
-      return (
-        <Badge variant="outline" className="border-0 bg-blue-100 text-blue-800">
-          Completed
-        </Badge>
-      );
-    case "expired":
-      return (
-        <Badge variant="outline" className="border-0 bg-zinc-200 text-zinc-700">
-          Expired
-        </Badge>
-      );
-    case "cancelled":
-      return (
-        <Badge variant="outline" className="border-0 bg-red-100 text-red-800">
-          Cancelled
-        </Badge>
-      );
-    default:
-      return <Badge variant="outline">Unknown</Badge>;
-  }
-}
-
-// Helper component for claim link cards
-function ClaimLinkCard({
-  link,
-  onClick,
-}: {
-  link: ClaimLink;
-  onClick: () => void;
-}) {
-  return (
-    <div
-      onClick={onClick}
-      className="corner-squircle cursor-pointer rounded-[25px] border border-zinc-200 bg-white p-4 transition-colors hover:bg-zinc-50"
-    >
-      <div className="flex items-start gap-3">
-        {/* Visual */}
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center">
-          {link.imageType === "emoji" ? (
-            <span className="text-3xl">{link.imageOrEmoji}</span>
-          ) : (
-            <div className="relative h-12 w-12">
-              <Image
-                src={link.imageOrEmoji}
-                alt={link.title}
-                fill
-                className="rounded-lg object-cover"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="min-w-0 flex-1">
-          <div className="mb-1 flex items-start justify-between gap-2">
-            <h3 className="line-clamp-1 font-semibold text-zinc-900">
-              {link.title}
-            </h3>
-            {getStatusBadge(link.status)}
-          </div>
-
-          <div className="mb-2 text-sm text-zinc-600">
-            {link.totalAmount} HBAR •{" "}
-            {link.accessMode === "anyone" ? "Anyone" : "Allowlist"}
-          </div>
-
-          <div className="mb-3 text-sm text-zinc-500">
-            {link.claimCount} claim{link.claimCount !== 1 ? "s" : ""} •{" "}
-            {formatEtherToHbar(Math.max(
-              0,
-              parseFloat(link.totalAmount) - parseFloat(link.totalClaimed),
-            ).toString())} remaining
-          </div>
-
-          <div className="text-xs text-zinc-400">
-            Created {formatFullDate(link._creationTime)}
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }

@@ -16,35 +16,13 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { format } from "date-fns";
+import { RecipientUser } from "./user-recipient-input";
+import { SplitBillCreate } from "./split-bill/split-bill-create";
+import { SplitBillList } from "./split-bill/split-bill-list";
+import { SplitBillDetails } from "./split-bill/split-bill-details";
 import {
   Split,
   X,
@@ -52,31 +30,36 @@ import {
   Info,
   Check,
   Plus,
-  Trash2,
-  Loader2,
   ArrowLeft,
-  User,
-  Clock,
-  Send,
-  XCircle,
-  Pause,
-  Ban,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import EmojiPicker from "emoji-picker-react";
-import UserRecipientInput, {
-  RecipientUser,
-} from "@/components/home/user-recipient-input";
 import { formatFullDate, formatExpiry } from "@/lib/date-utils";
 import { formatEtherToHbar, formatHbarValue, formatWeiToHbar } from "@/lib/format-utils";
 import { getActionGradient } from "@/lib/action-colors";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-type ViewMode = "create" | "list" | "details";
-type SplitMode = "equal" | "custom";
-type StatusFilter = "all" | "active" | "completed" | "closed" | "expired";
-type SortOption = "recent" | "amount" | "pending";
-type ListTab = "created" | "participating";
+import {
+  ViewMode,
+  SplitMode,
+  StatusFilter,
+  SortOption,
+  ListTab
+} from "./split-bill/split-bill-utils";
 
 export default function SplitBillSheet({
   hideTrigger = false,
@@ -693,14 +676,16 @@ export default function SplitBillSheet({
     }
   };
 
-  const isValid =
+  const isValid = !!(
     title.trim() &&
     amount &&
     parseFloat(amount) > 0 &&
-    participants.length >= 2;
+    participants.length >= 2
+  );
 
-  const isCreator =
-    user && selectedSplit && selectedSplit.creatorId === user._id;
+  const isCreator = !!(
+    user && selectedSplit && selectedSplit.creatorId === user._id
+  );
 
   return (
     <>
@@ -780,704 +765,79 @@ export default function SplitBillSheet({
             <ScrollArea className="flex-1 overflow-auto">
               {/* CREATE VIEW */}
               {viewMode === "create" && (
-                <div className="space-y-6 p-6 pb-10">
-                  {/* Visual Selection */}
-                  <div className="space-y-2">
-                    <Label>Visual (Optional)</Label>
-                    <Tabs
-                      value={visualTab}
-                      onValueChange={(v) => setVisualTab(v as "emoji" | "none")}
-                    >
-                      <TabsList className="grid w-fit grid-cols-2">
-                        <TabsTrigger value="none">None</TabsTrigger>
-                        <TabsTrigger value="emoji">Emoji</TabsTrigger>
-                      </TabsList>
-
-                      <TabsContent value="emoji" className="mt-4">
-                        <div className="flex flex-col items-center gap-4">
-                          <div className="text-6xl">{selectedEmoji}</div>
-                          <EmojiPicker
-                            onEmojiClick={(emoji) =>
-                              setSelectedEmoji(emoji.emoji)
-                            }
-                            width="fit"
-                            height="300px"
-                          />
-                        </div>
-                      </TabsContent>
-                    </Tabs>
-                  </div>
-
-                  {/* Title */}
-                  <div className="space-y-2">
-                    <Label>Title *</Label>
-                    <Input
-                      placeholder="e.g., Team Dinner, Trip Expenses"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      maxLength={100}
-                    />
-                    <p className="text-xs text-zinc-500">
-                      {title.length}/100 characters
-                    </p>
-                  </div>
-
-                  {/* Description */}
-                  <div className="space-y-2">
-                    <Label>Description (Optional)</Label>
-                    <Textarea
-                      placeholder="What is this split for?"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      maxLength={500}
-                      rows={3}
-                    />
-                    <p className="text-xs text-zinc-500">
-                      {description.length}/500 characters
-                    </p>
-                  </div>
-
-                  {/* Total Amount */}
-                  <div className="space-y-2">
-                    <Label>Total Amount (HBAR) *</Label>
-                    <Input
-                      type="number"
-                      step="0.000001"
-                      placeholder="0.00"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                    />
-                  </div>
-
-                  {/* Participants */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label>Participants ({participants.length}/50) *</Label>
-                    </div>
-                    <UserRecipientInput
-                      value={null}
-                      onChange={handleAddParticipant}
-                      placeholder="Search and add participants"
-                      mode="request"
-                    />
-                    {participants.length > 0 && (
-                      <div className="mt-3 space-y-2">
-                        {participants.map((participant) => (
-                          <div
-                            key={participant._id}
-                            className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3"
-                          >
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={participant.profileImageUrl} />
-                              <AvatarFallback>
-                                <User className="h-4 w-4" />
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="min-w-0 flex-1">
-                              <div className="font-medium text-zinc-900">
-                                {participant.name}
-                              </div>
-                              <div className="text-sm text-zinc-500">
-                                @{participant.username}
-                              </div>
-                            </div>
-                            {splitMode === "custom" && (
-                              <Input
-                                type="number"
-                                step="0.000001"
-                                placeholder="Amount"
-                                value={customAmounts[participant._id] || ""}
-                                onChange={(e) =>
-                                  handleCustomAmountChange(
-                                    participant._id,
-                                    e.target.value,
-                                  )
-                                }
-                                className="w-32"
-                              />
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() =>
-                                handleRemoveParticipant(participant._id)
-                              }
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <p className="text-xs text-zinc-500">
-                      Splitting among {participants.length} people (not
-                      including you)
-                    </p>
-                  </div>
-
-                  {/* Split Mode */}
-                  <div className="space-y-2">
-                    <Label>How to Split?</Label>
-                    <RadioGroup
-                      value={splitMode}
-                      onValueChange={(v) => setSplitMode(v as SplitMode)}
-                    >
-                      <div className="flex items-start space-x-2 rounded-lg border p-4">
-                        <RadioGroupItem value="equal" id="equal" />
-                        <div className="flex-1">
-                          <Label htmlFor="equal" className="font-medium">
-                            Equal splits
-                          </Label>
-                          <p className="text-sm text-zinc-500">
-                            Each person pays {calculateEqualAmount()} HBAR
-                          </p>
-                          {participants.length > 0 && amount && (
-                            <div className="mt-2 flex items-start gap-2 text-xs text-zinc-500">
-                              <Info className="mt-0.5 h-3 w-3 shrink-0" />
-                              <span>
-                                Amounts are distributed deterministically. If
-                                there&apos;s a remainder, participants with
-                                alphabetically earlier names pay 1 wei more.
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-start space-x-2 rounded-lg border p-4">
-                        <RadioGroupItem value="custom" id="custom" />
-                        <div className="flex-1">
-                          <Label htmlFor="custom" className="font-medium">
-                            Custom amounts
-                          </Label>
-                          <p className="text-sm text-zinc-500">
-                            Specify different amounts for each person
-                          </p>
-                          {splitMode === "custom" && (
-                            <div className="mt-2 text-sm text-zinc-600">
-                              Total: {formatHbarValue(calculateCustomSum().toString())} /{" "}
-                              {amount || "0"} HBAR
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </RadioGroup>
-                  </div>
-
-                  {/* Expiration Date */}
-                  <div className="space-y-2">
-                    <Label>Expiration (Optional)</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !expirationDate && "text-muted-foreground",
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {expirationDate ? (
-                            format(expirationDate, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={expirationDate}
-                          onSelect={setExpirationDate}
-                          disabled={(date) => date < new Date()}
-                          initialFocus
-                        />
-                        {expirationDate && (
-                          <div className="border-t p-3">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="w-full"
-                              onClick={() => setExpirationDate(undefined)}
-                            >
-                              Clear expiration
-                            </Button>
-                          </div>
-                        )}
-                      </PopoverContent>
-                    </Popover>
-                    <div className="flex items-start gap-2 text-xs text-zinc-500">
-                      <Info className="mt-0.5 h-3 w-3 shrink-0" />
-                      <span>
-                        A 5-minute grace period is automatically applied after
-                        expiration
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Create Button */}
-                  <div className="flex justify-center pt-4">
-                    <Button
-                      size="lg"
-                      onClick={handleCreateSplit}
-                      disabled={!isValid || isCreating}
-                      className="corner-squircle w-fit rounded-[15px]"
-                    >
-                      {isCreating ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Creating...
-                        </>
-                      ) : (
-                        <>
-                          <Split className="mr-2 h-4 w-4" />
-                          Create Split Bill
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
+                <SplitBillCreate
+                  visualTab={visualTab}
+                  setVisualTab={setVisualTab}
+                  selectedEmoji={selectedEmoji}
+                  setSelectedEmoji={setSelectedEmoji}
+                  title={title}
+                  setTitle={setTitle}
+                  description={description}
+                  setDescription={setDescription}
+                  amount={amount}
+                  setAmount={setAmount}
+                  splitMode={splitMode}
+                  setSplitMode={setSplitMode}
+                  expirationDate={expirationDate}
+                  setExpirationDate={setExpirationDate}
+                  participants={participants}
+                  handleAddParticipant={handleAddParticipant}
+                  handleRemoveParticipant={handleRemoveParticipant}
+                  customAmounts={customAmounts}
+                  handleCustomAmountChange={handleCustomAmountChange}
+                  calculateEqualAmount={calculateEqualAmount}
+                  calculateCustomSum={calculateCustomSum}
+                  handleCreateSplit={handleCreateSplit}
+                  isCreating={isCreating}
+                  isValid={isValid}
+                />
               )}
 
               {/* LIST VIEW */}
               {viewMode === "list" && (
-                <div className="space-y-4 px-6 pt-0 pb-10">
-                  <div className="space-y-4">
-                    <div className="flex justify-center">
-                      <Button
-                        className={`corner-squircle w-fit rounded-[15px] bg-linear-to-r ${getActionGradient('splitBill')} text-white shadow-md hover:shadow-lg`}
-                        size="lg"
-                        onClick={() => setViewMode("create")}
-                      >
-                        <Plus className="mr-2 h-5 w-5" />
-                        Create Split
-                      </Button>
-                    </div>
-
-                    <Tabs
-                      value={listTab}
-                      onValueChange={(v) => setListTab(v as ListTab)}
-                      className="w-full"
-                    >
-                      <div className="flex justify-center">
-                        <TabsList className="grid w-fit grid-cols-2">
-                          <TabsTrigger value="created">My Splits</TabsTrigger>
-                          <TabsTrigger value="participating">
-                            Splits I&apos;m In
-                          </TabsTrigger>
-                        </TabsList>
-                      </div>
-
-                      <TabsContent value="created" className="mt-6 space-y-4">
-                        <div className="flex items-center gap-3">
-                          <Tabs
-                            value={statusFilter}
-                            onValueChange={(v) =>
-                              setStatusFilter(v as StatusFilter)
-                            }
-                            className="flex-1"
-                          >
-                            <TabsList className="grid w-fit grid-cols-3">
-                              <TabsTrigger value="all">All</TabsTrigger>
-                              <TabsTrigger value="active">Active</TabsTrigger>
-                              <TabsTrigger value="completed">
-                                Completed
-                              </TabsTrigger>
-                            </TabsList>
-                          </Tabs>
-
-                          <Select
-                            value={sortOption}
-                            onValueChange={(v) =>
-                              setSortOption(v as SortOption)
-                            }
-                          >
-                            <SelectTrigger className="w-fit">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="recent">Recent</SelectItem>
-                              <SelectItem value="amount">
-                                Highest Amount
-                              </SelectItem>
-                              <SelectItem value="pending">
-                                Most Pending
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        {mySplits === undefined ? (
-                          <div className="space-y-3">
-                            {[1, 2, 3].map((i) => (
-                              <div
-                                key={i}
-                                className="h-32 animate-pulse rounded-[25px] bg-zinc-100"
-                              />
-                            ))}
-                          </div>
-                        ) : mySplits.length === 0 ? (
-                          <div className="flex flex-col items-center justify-center py-12 text-center">
-                            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-teal-100">
-                              <Split className="h-8 w-8 text-teal-600" />
-                            </div>
-                            <h3 className="mb-2 text-lg font-semibold text-zinc-900">
-                              {statusFilter === "all"
-                                ? "No split bills yet"
-                                : `No ${statusFilter} split bills`}
-                            </h3>
-                            <p className="mb-4 text-sm text-zinc-500">
-                              Create a split bill to collect payments from
-                              friends
-                            </p>
-                            <Button
-                              onClick={() => setViewMode("create")}
-                              className="corner-squircle rounded-[15px]"
-                            >
-                              <Plus className="mr-2 h-4 w-4" />
-                              Create Split Bill
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="space-y-3">
-                            {sortSplits(mySplits).map((split) => (
-                              <div
-                                key={split._id}
-                                onClick={() => {
-                                  setSelectedSplitId(split._id);
-                                  setViewMode("details");
-                                }}
-                                className="corner-squircle cursor-pointer rounded-[25px] border border-zinc-200 bg-white p-4 transition-colors hover:bg-zinc-50"
-                              >
-                                <div className="flex items-start gap-3">
-                                  {split.imageOrEmoji && (
-                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center text-3xl">
-                                      {split.imageOrEmoji}
-                                    </div>
-                                  )}
-                                  <div className="min-w-0 flex-1">
-                                    <div className="mb-1 flex items-start justify-between gap-2">
-                                      <h3 className="line-clamp-1 font-semibold text-zinc-900">
-                                        {split.title}
-                                      </h3>
-                                      {getStatusBadge(split.status)}
-                                    </div>
-                                    <div className="mb-2 text-sm text-zinc-600">
-                                      {formatWeiToHbar(split.totalAmount)} total
-                                    </div>
-                                    <div className="mb-3 text-sm text-zinc-500">
-                                      {split.paidCount}/
-                                      {split.activeParticipantCount} paid
-                                      {split.activeParticipantCount !==
-                                        split.totalParticipants &&
-                                        ` • ${split.totalParticipants - split.activeParticipantCount} declined`}
-                                    </div>
-                                    <div className="text-xs text-zinc-400">
-                                      Created {formatFullDate(split.createdAt)}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </TabsContent>
-
-                      <TabsContent
-                        value="participating"
-                        className="mt-6 space-y-4"
-                      >
-                        {splitsImIn === undefined ? (
-                          <div className="space-y-3">
-                            {[1, 2, 3].map((i) => (
-                              <div
-                                key={i}
-                                className="h-32 animate-pulse rounded-[25px] bg-zinc-100"
-                              />
-                            ))}
-                          </div>
-                        ) : splitsImIn.length === 0 ? (
-                          <div className="flex flex-col items-center justify-center py-12 text-center">
-                            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-teal-100">
-                              <Split className="h-8 w-8 text-teal-600" />
-                            </div>
-                            <h3 className="mb-2 text-lg font-semibold text-zinc-900">
-                              No split bills
-                            </h3>
-                            <p className="text-sm text-zinc-500">
-                              Split bills you&apos;re invited to will appear
-                              here
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="space-y-3">
-                            {splitsImIn.map((item) => {
-                              if (!item.split) return null;
-                              const split = item.split;
-                              const participation = item.myParticipation;
-
-                              return (
-                                <div
-                                  key={split._id}
-                                  onClick={() => {
-                                    setSelectedSplitId(split._id);
-                                    setViewMode("details");
-                                  }}
-                                  className="corner-squircle cursor-pointer rounded-[25px] border border-zinc-200 bg-white p-4 transition-colors hover:bg-zinc-50"
-                                >
-                                  <div className="flex items-start gap-3">
-                                    {split.imageOrEmoji && (
-                                      <div className="flex h-12 w-12 shrink-0 items-center justify-center text-3xl">
-                                        {split.imageOrEmoji}
-                                      </div>
-                                    )}
-                                    <div className="min-w-0 flex-1">
-                                      <div className="mb-1 flex items-start justify-between gap-2">
-                                        <h3 className="line-clamp-1 font-semibold text-zinc-900">
-                                          {split.title}
-                                        </h3>
-                                        {getParticipantStatusBadge(
-                                          participation.status,
-                                        )}
-                                      </div>
-                                      <div className="mb-2 text-sm text-zinc-600">
-                                        From {split.creator?.name || "Unknown"}
-                                      </div>
-                                      <div className="mb-3 text-sm text-zinc-500">
-                                        Your share: {formatWeiToHbar(participation.amount)}
-                                      </div>
-                                      <div className="text-xs text-zinc-400">
-                                        Created{" "}
-                                        {formatFullDate(split.createdAt)}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </TabsContent>
-                    </Tabs>
-                  </div>
-                </div>
+                <SplitBillList
+                  listTab={listTab}
+                  setListTab={setListTab}
+                  statusFilter={statusFilter}
+                  setStatusFilter={setStatusFilter}
+                  sortOption={sortOption}
+                  setSortOption={setSortOption}
+                  mySplits={mySplits as any[]}
+                  splitsImIn={splitsImIn}
+                  sortSplits={sortSplits as any}
+                  getStatusBadge={getStatusBadge}
+                  getParticipantStatusBadge={getParticipantStatusBadge}
+                  setSelectedSplitId={setSelectedSplitId}
+                  setViewMode={setViewMode}
+                  getActionGradient={getActionGradient}
+                />
               )}
 
               {/* DETAILS VIEW */}
               {viewMode === "details" && selectedSplit && (
-                <div className="space-y-6 px-6 pt-0 pb-10">
-                  <div className="text-center">
-                    {selectedSplit.imageOrEmoji && (
-                      <div className="mb-4 flex justify-center text-6xl">
-                        {selectedSplit.imageOrEmoji}
-                      </div>
-                    )}
-
-                    <h2 className="mb-2 text-2xl font-bold text-zinc-900">
-                      {selectedSplit.title}
-                    </h2>
-
-                    {selectedSplit.description && (
-                      <p className="mb-4 text-zinc-600">
-                        {selectedSplit.description}
-                      </p>
-                    )}
-
-                    <div className="mb-4 flex items-center justify-center gap-2">
-                      {getStatusBadge(selectedSplit.status)}
-                    </div>
-
-                    {selectedSplit.creator && (
-                      <div className="mb-4 flex items-center justify-center gap-2 text-sm text-zinc-600">
-                        <span>Created by {selectedSplit.creator.name}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Amount Display */}
-                  <div className="corner-squircle rounded-[25px] border-2 border-teal-200 bg-teal-50 p-6 text-center">
-                    <div className="mb-1 text-sm font-medium text-teal-700">
-                      Collected
-                    </div>
-                    <div className="text-4xl font-bold text-teal-600">
-                      {formatWeiToHbar(selectedSplit.totalCollected)} /{" "}
-                      {formatWeiToHbar(selectedSplit.totalAmount)}
-                    </div>
-                    <div className="mt-2 text-sm text-teal-600">
-                      {selectedSplit.paidCount}/
-                      {selectedSplit.activeParticipantCount} participants paid
-                    </div>
-                  </div>
-
-                  {/* Expiration */}
-                  {selectedSplit.expiresAt && (
-                    <div className="flex items-center justify-center gap-2 text-sm text-zinc-600">
-                      <Clock className="h-4 w-4" />
-                      <span>
-                        Expires: {formatExpiry(selectedSplit.expiresAt)}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Participant Actions (if I'm a participant) */}
-                  {myParticipation && !isCreator && (
-                    <div className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
-                      <h3 className="font-semibold text-zinc-900">
-                        Your Share
-                      </h3>
-                      <div className="text-2xl font-bold text-zinc-900">
-                        {formatWeiToHbar(myParticipation.amount)}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-zinc-600">Status:</span>
-                        {getParticipantStatusBadge(myParticipation.status)}
-                      </div>
-                      {myParticipation.status === "pending" &&
-                        selectedSplit.status === "active" && (
-                          <div className="flex gap-2">
-                            <Button
-                              onClick={handlePayShare}
-                              className="corner-squircle flex-1 rounded-[15px]"
-                            >
-                              <Send className="mr-2 h-4 w-4" />
-                              Pay Now
-                            </Button>
-                            <Button
-                              onClick={handleDeclineShare}
-                              variant="outline"
-                              className="corner-squircle flex-1 rounded-[15px]"
-                            >
-                              <XCircle className="mr-2 h-4 w-4" />
-                              Decline
-                            </Button>
-                          </div>
-                        )}
-                    </div>
-                  )}
-
-                  {/* Participants */}
-                  <div className="space-y-3">
-                    <h3 className="font-semibold text-zinc-900">
-                      Participants
-                    </h3>
-                    {selectedSplit.participants.map((p) => (
-                      <div
-                        key={p._id}
-                        className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3"
-                      >
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={p.user?.profileImageUrl} />
-                          <AvatarFallback>
-                            <User className="h-5 w-5" />
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <div className="font-medium text-zinc-900">
-                              {p.user?.name || "Unknown"}
-                            </div>
-                            {p.status === "paid" && (
-                              <Check className="h-4 w-4 text-green-600" />
-                            )}
-                          </div>
-                          <div className="text-sm text-zinc-500">
-                            @{p.user?.username || "unknown"}
-                          </div>
-                          {p.paidAt && (
-                            <div className="text-xs text-zinc-400">
-                              Paid {formatFullDate(p.paidAt)}
-                            </div>
-                          )}
-                          {p.status === "marked_paid" && p.markedPaidNote && (
-                            <div className="mt-1 text-xs text-zinc-500">
-                              Note: {p.markedPaidNote}
-                            </div>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-semibold text-zinc-900">
-                            {formatWeiToHbar(p.amount)}
-                          </div>
-                          {getParticipantStatusBadge(p.status)}
-                          {isCreator &&
-                            p.status === "pending" &&
-                            selectedSplit.status === "active" && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedParticipantForMark(p);
-                                  setShowMarkPaidModal(true);
-                                }}
-                                className="mt-1 text-xs"
-                              >
-                                Mark Paid
-                              </Button>
-                            )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Creator Actions */}
-                  {isCreator && selectedSplit.status === "active" && (
-                    <div className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
-                      <h3 className="font-semibold text-zinc-900">
-                        Creator Actions
-                      </h3>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          onClick={() => setShowReminderModal(true)}
-                          variant="outline"
-                          size="sm"
-                          className="corner-squircle rounded-[15px]"
-                        >
-                          <Send className="mr-2 h-4 w-4" />
-                          Send Reminders
-                        </Button>
-                        <Button
-                          onClick={handleCloseSplit}
-                          variant="outline"
-                          size="sm"
-                          className="corner-squircle rounded-[15px]"
-                          disabled={selectedSplit.paidCount === 0}
-                        >
-                          <Pause className="mr-2 h-4 w-4" />
-                          Close Split
-                        </Button>
-                        {selectedSplit.expiresAt && (
-                          <Button
-                            onClick={() => setShowExtendModal(true)}
-                            variant="outline"
-                            size="sm"
-                            className="corner-squircle rounded-[15px]"
-                          >
-                            <Clock className="mr-2 h-4 w-4" />
-                            Extend Expiry
-                          </Button>
-                        )}
-                        <Button
-                          onClick={handleCancelSplit}
-                          variant="outline"
-                          size="sm"
-                          className="corner-squircle rounded-[15px] text-red-600"
-                          disabled={selectedSplit.paidCount > 0}
-                        >
-                          <Ban className="mr-2 h-4 w-4" />
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <SplitBillDetails
+                  selectedSplit={selectedSplit}
+                  myParticipation={myParticipation}
+                  isCreator={isCreator}
+                  getStatusBadge={getStatusBadge}
+                  getParticipantStatusBadge={getParticipantStatusBadge}
+                  handlePayShare={handlePayShare}
+                  handleDeclineShare={handleDeclineShare}
+                  setShowMarkPaidModal={setShowMarkPaidModal}
+                  setSelectedParticipantForMark={setSelectedParticipantForMark}
+                  setShowReminderModal={setShowReminderModal}
+                  setShowExtendModal={setShowExtendModal}
+                  handleCloseSplit={handleCloseSplit}
+                  handleCancelSplit={handleCancelSplit}
+                />
               )}
             </ScrollArea>
           </div>
-        </SheetContent >
-      </Sheet >
+        </SheetContent>
+      </Sheet>
 
       {/* Mark Paid Modal */}
-      < Dialog open={showMarkPaidModal} onOpenChange={setShowMarkPaidModal} >
+      <Dialog open={showMarkPaidModal} onOpenChange={setShowMarkPaidModal}>
         <DialogContent className="corner-squircle rounded-[40px] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Mark as Paid Outside App</DialogTitle>
@@ -1526,10 +886,10 @@ export default function SplitBillSheet({
             </div>
           </div>
         </DialogContent>
-      </Dialog >
+      </Dialog>
 
       {/* Send Reminder Modal */}
-      < Dialog open={showReminderModal} onOpenChange={setShowReminderModal} >
+      <Dialog open={showReminderModal} onOpenChange={setShowReminderModal}>
         <DialogContent className="corner-squircle rounded-[40px] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Send Reminders</DialogTitle>
@@ -1567,10 +927,10 @@ export default function SplitBillSheet({
             </div>
           </div>
         </DialogContent>
-      </Dialog >
+      </Dialog>
 
       {/* Extend Expiration Modal */}
-      < Dialog open={showExtendModal} onOpenChange={setShowExtendModal} >
+      <Dialog open={showExtendModal} onOpenChange={setShowExtendModal}>
         <DialogContent className="corner-squircle rounded-[40px] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Extend Expiration</DialogTitle>
@@ -1643,7 +1003,7 @@ export default function SplitBillSheet({
             </div>
           </div>
         </DialogContent>
-      </Dialog >
+      </Dialog>
     </>
   );
 }

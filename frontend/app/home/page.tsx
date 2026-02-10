@@ -4,18 +4,21 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import dynamic from "next/dynamic";
 import { formatHbarValue } from "@/lib/format-utils";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { useBalance } from "wagmi";
 import { Spinner } from "@/components/ui/spinner";
 import { MoreHorizontal, Settings } from "lucide-react";
 import { motion } from "framer-motion";
-import SendPaymentSheet from "@/components/home/send-payment-sheet";
-import ReceivePaymentDialog from "@/components/home/receive-payment-dialog";
-import RequestPaymentSheet from "@/components/home/request-payment-sheet";
-import PaymentLinkSheet from "@/components/home/payment-link-sheet";
-import ClaimLinkSheet from "@/components/home/claim-link-sheet";
-import SplitBillSheet from "@/components/home/split-bill-sheet";
+
+const SendPaymentSheet = dynamic(() => import("@/components/home/send-payment-sheet"), { ssr: false });
+const ReceivePaymentDialog = dynamic(() => import("@/components/home/receive-payment-dialog"), { ssr: false });
+const RequestPaymentSheet = dynamic(() => import("@/components/home/request-payment-sheet"), { ssr: false });
+const PaymentLinkSheet = dynamic(() => import("@/components/home/payment-link-sheet"), { ssr: false });
+const ClaimLinkSheet = dynamic(() => import("@/components/home/claim-link-sheet"), { ssr: false });
+const SplitBillSheet = dynamic(() => import("@/components/home/split-bill-sheet"), { ssr: false });
+
 import RecentActivityFeed from "@/components/home/recent-activity-feed";
 import FriendsList from "@/components/home/friends-list";
 import {

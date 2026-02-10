@@ -13,22 +13,10 @@ import {
 import { formatFullDate } from "@/lib/date-utils";
 import { formatEtherToHbar } from "@/lib/format-utils";
 
+import { PaymentLink } from "./payment-link/payment-link-utils";
+
 interface PaymentLinkCardProps {
-    link: {
-        _id: string;
-        title: string;
-        amount: string;
-        status: string;
-        linkType: string;
-        paymentCount: number;
-        totalCollected: string;
-        imageOrEmoji: string;
-        imageType: "emoji" | "image";
-        imageUrl: string;
-        shortId: string;
-        _creationTime: number;
-        expiresAt?: number;
-    };
+    link: PaymentLink;
     onClick: () => void;
 }
 

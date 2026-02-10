@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { Settings } from "lucide-react";
-import UserSearch from "@/components/user-search";
-import Notifications from "@/components/notifications";
+import dynamic from "next/dynamic";
+const UserSearch = dynamic(() => import("@/components/user-search"), { ssr: false });
+const Notifications = dynamic(() => import("@/components/notifications"), { ssr: false });
 
 export function TopNav() {
   const router = useRouter();

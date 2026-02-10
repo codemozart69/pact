@@ -153,7 +153,7 @@ export default function ConversationHeader({
                         </div>
                     ) : groupId && group ? (
                         <div className="truncate text-sm text-zinc-500">
-                            {group.memberCount} members
+                            {(group as any).memberCount} members
                         </div>
                     ) : null}
                 </div>
